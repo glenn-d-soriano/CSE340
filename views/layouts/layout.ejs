@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Include the head partial for dynamic metadata and CSS -->
+    <%- include('../partials/head') %>
+</head>
+
+<body>
+    <div id="wrapper">
+        <!-- Include the header partial (site name, account link) -->
+        <%- include('../partials/header') %>
+
+            <!-- Include the navigation partial (site links) -->
+            <%- include('../partials/navigation') %>
+
+                <!-- MAIN CONTENT AREA: The content of specific pages (like home.ejs) gets injected here -->
+                <main id="content">
+                    <%- body %>
+                </main>
+
+                <!-- Include the footer partial (copyright) -->
+                <%- include('../partials/footer') %>
+    </div>
+</body>
+
+</html>
