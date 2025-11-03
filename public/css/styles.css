@@ -4,3 +4,306 @@
 *:after {
   box-sizing: border-box;
 }
+
+/* ================================
+  1. Base & Global Styles
+  - Mobile First: Styles here apply to ALL screen sizes (mobile default)
+================================
+*/
+
+:root {
+  --primary-color: #2c3e50;
+  /* Dark Blue - Primary background/text */
+  --secondary-color: #3498db;
+  /* Light Blue - Accent/Link/Button */
+  --background-color: #f8f8f8;
+  /* Off-White/Light Gray */
+  --text-color: #333;
+  /* Dark Gray for main content */
+  --font-family-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --border-radius: 6px;
+}
+
+/* Base Body and Page Structure */
+body {
+  font-family: var(--font-family-sans);
+  color: var(--text-color);
+  background-color: var(--background-color);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+#wrapper {
+  max-width: 100%;
+  /* Ensures no horizontal scrolling */
+  margin: 0 auto;
+  background-color: white;
+  /* Simulate the white content area */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Links and Buttons (Must pass accessibility) */
+a {
+  color: var(--secondary-color);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Formatted Button Style */
+.btn-own {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: var(--secondary-color);
+  color: white !important;
+  /* Ensure high contrast */
+  border-radius: var(--border-radius);
+  text-align: center;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.btn-own:hover {
+  background-color: #2980b9;
+  text-decoration: none;
+}
+
+
+/* ================================
+  2. Header & Navigation (Mobile)
+================================
+*/
+#pageHeader {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#pageHeader a {
+  color: white;
+  font-size: 1.5em;
+  text-decoration: none;
+}
+
+.account-link {
+  font-size: 0.9em;
+}
+
+/* Mobile Navigation (Stacked or Hamburger style, here we use simple stacked) */
+#primaryNav {
+  background-color: #f1f1f1;
+  padding: 10px 0;
+}
+
+#primaryNav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  /* Allows wrapping on small screens */
+  justify-content: center;
+  gap: 5px;
+}
+
+#primaryNav li a {
+  display: block;
+  padding: 8px 12px;
+  background-color: #eee;
+  color: var(--text-color);
+  border-radius: var(--border-radius);
+  text-align: center;
+  font-size: 0.9em;
+}
+
+#primaryNav li a:hover {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+
+/* ================================
+  3. Main Content (Mobile Layout)
+================================
+*/
+.main-content-area {
+  padding: 20px;
+}
+
+/* Hero Section (Stacked layout for mobile) */
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30px;
+}
+
+.vehicle-card {
+  background-color: rgba(52, 152, 219, 0.1);
+  /* Light blue tint */
+  padding: 15px;
+  border-radius: var(--border-radius);
+  order: 2;
+  /* Move below image on mobile */
+  margin-top: 15px;
+}
+
+.delorean-image {
+  width: 100%;
+  height: auto;
+  order: 1;
+  /* Place image first on mobile */
+  border-radius: var(--border-radius);
+}
+
+.vehicle-card ul {
+  list-style: disc;
+  padding-left: 20px;
+  margin-bottom: 20px;
+}
+
+/* Details Section (Upgrades and Reviews - Stacked for mobile) */
+.details-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.upgrades-section {
+  order: 2;
+  /* Upgrades below reviews on mobile is fine */
+}
+
+.reviews-section {
+  order: 1;
+}
+
+.upgrade-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  /* 2 columns for mobile */
+  gap: 15px;
+  text-align: center;
+}
+
+.upgrade-item {
+  background-color: var(--background-color);
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: var(--border-radius);
+  transition: transform 0.2s;
+}
+
+.upgrade-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.upgrade-item img {
+  width: 50px;
+  /* Small icons for mobile */
+  height: 50px;
+  margin-bottom: 5px;
+}
+
+.reviews-section ul {
+  list-style: none;
+  /* Remove bullets for clean look */
+  padding: 0;
+}
+
+.reviews-section li {
+  border-bottom: 1px solid #eee;
+  padding: 5px 0;
+  font-size: 0.95em;
+}
+
+/* Footer (Mobile) */
+footer {
+  text-align: center;
+  padding: 10px;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 0.8em;
+}
+
+
+/* ================================
+  4. Large Screen Media Query
+  - For screens 768px and wider (Tablets and Desktops)
+================================
+*/
+@media only screen and (min-width: 768px) {
+
+  #wrapper {
+    max-width: 1200px;
+    border: 4px solid var(--primary-color);
+    /* Added border to simulate the final layout container */
+  }
+
+  /* Header & Nav */
+  #pageHeader {
+    padding: 20px 40px;
+  }
+
+  /* Main Content Layout */
+  .main-content-area {
+    padding: 40px;
+  }
+
+  /* Hero Section (Side-by-side layout for large screens) */
+  .hero-section {
+    flex-direction: row;
+    gap: 30px;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  .vehicle-card {
+    width: 40%;
+    position: absolute;
+    /* Position over the image */
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.8);
+    /* Semi-transparent white background */
+    border: 1px solid #ddd;
+  }
+
+  .delorean-image {
+    width: 100%;
+    /* Image fills the container */
+    height: auto;
+    order: 1;
+  }
+
+  /* Details Section (Upgrades and Reviews side-by-side) */
+  .details-section {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .upgrades-section {
+    width: 45%;
+    order: 1;
+  }
+
+  .reviews-section {
+    width: 45%;
+    order: 2;
+  }
+
+  .upgrade-grid {
+    grid-template-columns: repeat(4, 1fr);
+    /* 4 columns for desktop */
+  }
+
+}
