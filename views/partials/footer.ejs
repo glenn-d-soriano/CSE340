@@ -1,7 +1,9 @@
-
-
-<% const d=new Date(); let year=d.getFullYear() %>
-    <footer>
-        <p class="copyright">&copy; <%= year %>, CSE 340 App</p>
-    </footer>
-    
+<footer>
+    <% const now=new Date(); // Generates the date, time, and year in a nice, local format const
+        dateTimeString=now.toLocaleString('en-US', { year: 'numeric' , month: 'long' , day: 'numeric' , hour: '2-digit'
+        , minute: '2-digit' , second: '2-digit' }); %>
+        <p class="copyright">&copy; <%= now.getFullYear() %>, CSE 340 App</p>
+        <p class="info">Developed by: Glenn Soriano</p>
+        <p class="info">Last Generated: <%= dateTimeString %>
+        </p>
+</footer>
