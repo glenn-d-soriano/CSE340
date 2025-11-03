@@ -36,17 +36,18 @@ app.get("/", function (req, res) {
 
 /* ***********************
  * Local Server Information
- * Values from .env (environment) file
+ * We are explicitly setting host/port to guarantee 'localhost' output.
  *************************/
-// IMPORTANT FIX: Added fallback values (|| 5500 and || '0.0.0.0') 
-// to ensure the server always has a port and host to listen on, even if 
-// environment variables fail to load.
-const port = process.env.PORT || 5500
-const host = process.env.HOST || '0.0.0.0'
+// Set port to 5500
+const port = 5500
+// Set host to 'localhost' to force binding to 127.0.0.1
+const host = 'localhost' 
 
 /* ***********************
  * Log statement to confirm server operation
  *************************/
-app.listen(port, () => {
-  console.log(`app listening on ${host}:${port}`)
+// We pass both port and host to app.listen to ensure the binding happens on 127.0.0.1.
+// We use the string literal 'localhost' in the console log to ensure that exact text is displayed.
+app.listen(port, host, () => {
+  console.log(`app listening on http://localhost:${port}`)
 })
