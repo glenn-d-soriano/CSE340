@@ -45,12 +45,16 @@ body {
 
 /* Links and Buttons (Must pass accessibility) */
 a {
-  color: var(--secondary-color);
+  /* --- FIX 1: Upgrade Links Contrast --- */
+  /* Changing the link color from light secondary blue to dark text color */
+  color: var(--text-color);
   text-decoration: none;
   font-weight: bold;
 }
 
 a:hover {
+  /* On hover, still use the secondary color, but the underline helps with indication */
+  color: var(--secondary-color);
   text-decoration: underline;
 }
 
@@ -58,7 +62,9 @@ a:hover {
 .btn-own {
   display: inline-block;
   padding: 10px 20px;
-  background-color: var(--secondary-color);
+  /* --- FIX 2: Own Today Button Contrast --- */
+  /* Changing background from light secondary blue to dark primary color */
+  background-color: var(--primary-color);
   color: white !important;
   /* Ensure high contrast */
   border-radius: var(--border-radius);
@@ -69,7 +75,8 @@ a:hover {
 }
 
 .btn-own:hover {
-  background-color: #2980b9;
+  background-color: #1a242f;
+  /* Darker shade of primary color */
   text-decoration: none;
 }
 
