@@ -146,6 +146,7 @@ a:hover {
 }
 
 .vehicle-card {
+  /* This is the mobile/default background, which is fine since it's NOT on the image */
   background-color: rgba(52, 152, 219, 0.1);
   /* Light blue tint */
   padding: 15px;
@@ -273,8 +274,9 @@ footer {
     top: 20px;
     left: 20px;
     z-index: 10;
-    background-color: rgba(255, 255, 255, 0.8);
-    /* Semi-transparent white background */
+    /* FIX CONTRAST HERE: Use white for background to pass contrast check */
+    background-color: white;
+    /* Changed from rgba(255, 255, 255, 0.8) to solid white */
     border: 1px solid #ddd;
   }
 
@@ -307,11 +309,13 @@ footer {
   }
 
 }
+
 /* --- FIXING CONTRAST ERROR FOR LAYERED TEXT --- */
+/* This rule is now redundant for large screens but helps if the card ever moves */
 .hero-text-card {
-  /* Ensures text is readable over the image background */
-  background-color: rgba(255, 255, 255, 0.85);
-  /* Semi-transparent white background */
+  /* This rule is kept but the media query fix above is stronger */
+  background-color: rgba(255, 255, 255, 0.95);
+  /* Use high opacity white as a fallback */
   padding: 15px;
   /* Adds space around the text */
   border-radius: 5px;
