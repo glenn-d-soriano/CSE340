@@ -307,3 +307,13 @@ footer {
   }
 
 }
+/* --- FIXING CONTRAST ERROR FOR LAYERED TEXT --- */
+.hero-text-card {
+  /* Ensures text is readable over the image background */
+  background-color: rgba(255, 255, 255, 0.85);
+  /* Semi-transparent white background */
+  padding: 15px;
+  /* Adds space around the text */
+  border-radius: 5px;
+  /* Keeps the rounded corner aesthetic */
+}
