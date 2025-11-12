@@ -104,37 +104,56 @@ a:hover {
   font-size: 0.9em;
 }
 
-/* Mobile Navigation (Stacked or Hamburger style, here we use simple stacked) */
+/* --- UPDATED: Horizontal Navigation Bar Styling --- */
 #primaryNav {
-  background-color: #f1f1f1;
-  padding: 10px 0;
+  background-color: var(--primary-color);
+  /* Dark background matching header */
+  padding: 0;
+  /* Optional: Blue accent line below the navigation */
+  border-bottom: 3px solid var(--secondary-color);
 }
 
 #primaryNav ul {
   list-style: none;
   padding: 0;
   margin: 0;
+  /* Make horizontal and center the items */
   display: flex;
   flex-wrap: wrap;
-  /* Allows wrapping on small screens */
+  /* Allows wrapping on very small screens */
   justify-content: center;
-  gap: 5px;
+  gap: 0;
+}
+
+#primaryNav li {
+  margin: 0;
 }
 
 #primaryNav li a {
   display: block;
-  padding: 8px 12px;
-  background-color: #eee;
-  color: var(--text-color);
-  border-radius: var(--border-radius);
+  padding: 15px 20px;
+  /* Generous padding for good touch targets */
+  background-color: transparent;
+  /* No background needed */
+  color: white;
+  /* White text for high contrast */
+  border-radius: 0;
   text-align: center;
-  font-size: 0.9em;
+  font-size: 1.1em;
+  /* Slightly larger text */
+  font-weight: 500;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 #primaryNav li a:hover {
-  background-color: var(--secondary-color);
-  color: white;
+  background-color: #1a242f;
+  /* Dark shade on hover */
+  color: var(--secondary-color);
+  /* Blue text on hover */
+  text-decoration: none;
 }
+
+/* --- END UPDATED NAV --- */
 
 
 /* ================================

@@ -1,0 +1,26 @@
+
+
+<%# =============================== %>
+<%#  Section 1: Content Heading     %>
+<%# =============================== %>
+
+<% if (title) { %>
+  <h1><%= title %></h1>
+<% } else { %>
+  <%# Ideally, redirect should happen in controller, not here. %>
+  <h1>Vehicle Inventory</h1>
+<% } %>
+
+
+<%# =============================== %>
+<%#  Section 2: Message Block       %>
+<%# =============================== %>
+
+<%# messages() %>
+
+
+<%# =============================== %>
+<%#  Section 3: Inventory Grid      %>
+<%# =============================== %>
+
+<%- grid %>
