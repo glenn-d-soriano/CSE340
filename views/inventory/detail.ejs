@@ -1,4 +1,10 @@
-<% layout('layouts/layout') %>
-    <%= title %>
+<!-- views/inventory/detail.ejs -->
 
-        <%- detailHTML %>
+<h1 class="page-title">
+    <%= title %>
+</h1>
+
+<div class="vehicle-detail-container">
+    <!-- Vehicle detail content from utilities.buildInventoryDetail -->
+    <%- detailHTML %>
+</div>

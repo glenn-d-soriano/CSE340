@@ -1,50 +1,60 @@
 const invModel = require("../models/inventory-model")
-const utilities = require("../utilities/")
+const utilities = require("../utilities")
 
 const invCont = {}
 
 /* ***************************
- *  Build inventory by classification view
+ * Build inventory by classification view
  * ************************** */
-invCont.buildByClassificationId = async function (req, res, next) {
+invCont.buildByClassificationId = utilities.handleErrors(async function (req, res, next) {
   const classification_id = req.params.classificationId
   const data = await invModel.getInventoryByClassificationId(classification_id)
+
+  // If no vehicles found, handle gracefully
+  if (!data || data.length === 0) {
+    const nav = await utilities.getNav()
+    return res.render("./inventory/classification", {
+      title: "No Vehicles Found",
+      nav,
+      grid: '<p class="notice">Sorry, no vehicles could be found for this classification.</p>'
+    })
+  }
+
   const grid = await utilities.buildClassificationGrid(data)
   let nav = await utilities.getNav()
-  const className = data[0].classification_name
+  const className = data[0].classification_name || "Vehicles"
   res.render("./inventory/classification", {
     title: className + " vehicles",
     nav,
     grid,
   })
-}
+})
 
 /* *************************
  * Build single vehicle detail view
  * ************************* */
 invCont.buildByInvId = utilities.handleErrors(async (req, res, next) => {
   const inv_id = req.params.invId
-  const data = await invModel.getInventoryByInvId(inv_id)
+  const vehicle = await invModel.getInventoryById(inv_id)
   
   // Throw a 404 error if no vehicle is found
-  if (!data || data.length === 0) {
+  if (!vehicle) {
     const err = new Error("No vehicle found")
     err.status = 404
     next(err)
     return
   }
-  
-  // We expect only one vehicle, so use data[0]
-  const vehicle = data[0]
-  
-  const detailHTML = utilities.buildVehicleDetail(vehicle)
+
+  const detailHTML = await utilities.buildInventoryDetail(vehicle)
   let nav = await utilities.getNav()
 
-  // Use the vehicle's make and model for the page title
-  const title = `${vehicle.inv_year} ${vehicle.inv_make} ${vehicle.inv_model}`
+  // Safe defaults for title
+  const title = `${vehicle.inv_year || ""} ${vehicle.inv_make || ""} ${vehicle.inv_model || ""}`.trim() || "Vehicle Details"
 
+  console.log(vehicle)
+  
   res.render("./inventory/detail", {
-    title: title,
+    title,
     nav,
     detailHTML,
   })

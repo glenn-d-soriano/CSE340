@@ -347,3 +347,77 @@ footer {
   border-radius: 5px;
   /* Keeps the rounded corner aesthetic */
 }
+
+/* ====== Vehicle Detail Page ====== */
+.vehicle-detail-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.vehicle-detail {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 2rem;
+}
+
+/* Image wrapper */
+.detail-image-wrapper {
+  flex: 1 1 300px;
+  max-width: 500px;
+}
+
+.detail-image-wrapper img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--border-radius);
+}
+
+/* Info card */
+.detail-info-card {
+  flex: 1 1 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detail-info-card h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.detail-info-card section {
+  background-color: var(--background-color);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+}
+
+.detail-info-card h3,
+.detail-info-card h4 {
+  margin-bottom: 0.5rem;
+}
+
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-list li {
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 768px) {
+  .vehicle-detail {
+    flex-direction: column;
+  }
+
+  .detail-image-wrapper,
+  .detail-info-card {
+    max-width: 100%;
+  }
+}
