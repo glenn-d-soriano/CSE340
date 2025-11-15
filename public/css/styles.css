@@ -423,12 +423,13 @@ footer {
 }
 
 /* Style all links within the footer */
-#footer a,
-#footer a:visited,
-#footer a:hover,
-#footer a:focus {
+/* --- FIX: Changed the selector from #footer a to the correct tag selector 'footer a' --- */
+footer a,
+footer a:visited,
+footer a:hover,
+footer a:focus {
   /* Explicitly set the color to white, matching the surrounding text */
-  color: #ffffff;
+  color: #ffffff !important;
 
   /* Removes the default underline from the link */
   text-decoration: none;
@@ -441,6 +442,6 @@ footer {
 }
 
 /* Optional: Add a subtle effect when hovering to show it's clickable */
-#footer a:hover {
+footer a:hover {
   opacity: 0.75;
 }
