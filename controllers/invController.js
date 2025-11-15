@@ -52,12 +52,15 @@ invCont.buildByInvId = utilities.handleErrors(async (req, res, next) => {
   const title = `${vehicle.inv_year || ""} ${vehicle.inv_make || ""} ${vehicle.inv_model || ""}`.trim() || "Vehicle Details"
 
   console.log(vehicle)
-  
+
   res.render("./inventory/detail", {
     title,
     nav,
     detailHTML,
   })
 })
-
+// In controllers/invController.js
+invCont.triggerError = async function (req, res, next) {
+  throw new Error("Intentional 500 Server Error");
+}
 module.exports = invCont
