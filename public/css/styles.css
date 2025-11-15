@@ -421,3 +421,17 @@ footer {
     max-width: 100%;
   }
 }
+
+/* Style all links within the footer */
+#footer a {
+  /* This sets the link color to white, matching the footer's main text color 
+    (which is typically set on the #footer element itself). 
+    */
+  color: inherit;
+
+  /* Removes the default underline from the link */
+  text-decoration: none;
+
+  /* Optional: Ensure the font size is slightly smaller to match typical footer text */
+  font-size: 0.9em;
+}
