@@ -446,19 +446,14 @@ footer a:hover {
   opacity: 0.75;
 }
 
-/* Fix image squishing on iPad Mini (768px) */
-@media (min-width: 768px) {
-  .detail-image-wrapper {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
+/* iPad Mini ONLY – Prevent tall images from overlapping title */
+@media only screen and (min-device-width: 768px) and (max-device-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
 
   .detail-image-wrapper img {
     width: 100% !important;
     height: auto !important;
     object-fit: contain !important;
-    /* make tall images fit instead of spilling upward */
     display: block !important;
   }
+
 }
- 
