@@ -446,11 +446,14 @@ footer a:hover {
   opacity: 0.75;
 }
 
- /*fix overlap image with ehading on ipadmini view */
+/* Fix heading overlap on iPad Mini */
+@media only screen and (min-width: 768px) {
 
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
+  .vehicle-detail-container,
+  .vehicle-detail,
+  .detail-image-wrapper,
+  .detail-info-card {
+    position: static !important;
+  }
 }
  
