@@ -446,14 +446,14 @@ footer a:hover {
   opacity: 0.75;
 }
 
-/* Fix heading overlap on iPad Mini */
 @media only screen and (min-width: 768px) {
+  .detail-image-wrapper {
+    padding-top: 3rem;
+    /* push image down to make space for heading */
+  }
 
-  .vehicle-detail-container,
-  .vehicle-detail,
-  .detail-image-wrapper,
-  .detail-info-card {
-    position: static !important;
+  .detail-image-wrapper img {
+    margin-top: 0;
   }
 }
  
