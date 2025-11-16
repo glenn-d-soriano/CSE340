@@ -446,14 +446,28 @@ footer a:hover {
   opacity: 0.75;
 }
 
+/* A: Force the "overlay card" behavior OFF on the detail page */
 @media only screen and (min-width: 768px) {
-  .detail-image-wrapper {
-    padding-top: 3rem;
-    /* push image down to make space for heading */
+
+  /* Very specific selectors targeting your detail-page markup */
+  .vehicle-detail-container .hero-section .vehicle-card,
+  .vehicle-detail .hero-section .vehicle-card,
+  .vehicle-detail-container .vehicle-card,
+  .vehicle-detail .vehicle-card {
+    position: static !important;
+    width: auto !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    margin: 0.75rem 0 !important;
+    z-index: auto !important;
   }
 
-  .detail-image-wrapper img {
-    margin-top: 0;
+  /* Also ensure the hero-section itself doesn't create a positioned stacking context */
+  .vehicle-detail-container .hero-section,
+  .vehicle-detail .hero-section {
+    position: static !important;
+    align-items: stretch !important;
   }
 }
  
