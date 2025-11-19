@@ -22,6 +22,11 @@
   /* Dark Gray for main content */
   --font-family-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --border-radius: 6px;
+
+  /* Define header height variables for better control */
+  --header-height-mobile: 65px;
+  --nav-height-mobile: 45px;
+  --total-fixed-height-mobile: 110px;
 }
 
 /* Base Body and Page Structure */
@@ -31,29 +36,27 @@ body {
   background-color: var(--background-color);
   line-height: 1.6;
   margin: 0;
-  padding: 0;
+  padding-top: 0;
 }
 
 #wrapper {
   max-width: 100%;
-  /* Ensures no horizontal scrolling */
   margin: 0 auto;
   background-color: white;
-  /* Simulate the white content area */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+  /* Wrapper Clearance: Safe padding to clear fixed header stack (Mobile Default) */
+  padding-top: 120px;
 }
 
 /* Links and Buttons (Must pass accessibility) */
 a {
-  /* --- FIX 1: Upgrade Links Contrast --- */
-  /* Changing the link color from light secondary blue to dark text color */
   color: var(--text-color);
   text-decoration: none;
   font-weight: bold;
 }
 
 a:hover {
-  /* On hover, still use the secondary color, but the underline helps with indication */
   color: var(--secondary-color);
   text-decoration: underline;
 }
@@ -62,11 +65,8 @@ a:hover {
 .btn-own {
   display: inline-block;
   padding: 10px 20px;
-  /* --- FIX 2: Own Today Button Contrast --- */
-  /* Changing background from light secondary blue to dark primary color */
   background-color: var(--primary-color);
   color: white !important;
-  /* Ensure high contrast */
   border-radius: var(--border-radius);
   text-align: center;
   text-decoration: none;
@@ -82,7 +82,7 @@ a:hover {
 
 
 /* ================================
-  2. Header & Navigation (Mobile)
+  2. Header & Navigation (Fixed for ALL sizes)
 ================================
 */
 #pageHeader {
@@ -92,6 +92,13 @@ a:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  /* FIXED FOR ALL SIZES */
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
+  height: var(--header-height-mobile);
 }
 
 #pageHeader a {
@@ -104,23 +111,26 @@ a:hover {
   font-size: 0.9em;
 }
 
-/* --- UPDATED: Horizontal Navigation Bar Styling --- */
+/* --- Horizontal Navigation Bar Styling --- */
 #primaryNav {
   background-color: var(--primary-color);
-  /* Dark background matching header */
   padding: 0;
-  /* Optional: Blue accent line below the navigation */
   border-bottom: 3px solid var(--secondary-color);
+
+  /* FIXED FOR ALL SIZES, stacked below header */
+  position: fixed;
+  width: 100%;
+  /* Use calc to ensure it starts exactly after the pageHeader */
+  top: var(--header-height-mobile);
+  z-index: 1000;
 }
 
 #primaryNav ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  /* Make horizontal and center the items */
   display: flex;
   flex-wrap: wrap;
-  /* Allows wrapping on very small screens */
   justify-content: center;
   gap: 0;
 }
@@ -132,29 +142,21 @@ a:hover {
 #primaryNav li a {
   display: block;
   padding: 15px 20px;
-  /* Generous padding for good touch targets */
   background-color: transparent;
-  /* No background needed */
   color: white;
-  /* White text for high contrast */
   border-radius: 0;
   text-align: center;
   font-size: 1.1em;
-  /* Slightly larger text */
   font-weight: 500;
   transition: background-color 0.3s, color 0.3s;
 }
 
 #primaryNav li a:hover {
   background-color: #1a242f;
-  /* Dark shade on hover */
+  /* Darker shade of primary color */
   color: var(--secondary-color);
-  /* Blue text on hover */
   text-decoration: none;
 }
-
-/* --- END UPDATED NAV --- */
-
 
 /* ================================
   3. Main Content (Mobile Layout)
@@ -172,13 +174,10 @@ a:hover {
 }
 
 .vehicle-card {
-  /* This is the mobile/default background, which is fine since it's NOT on the image */
   background-color: rgba(52, 152, 219, 0.1);
-  /* Light blue tint */
   padding: 15px;
   border-radius: var(--border-radius);
   order: 2;
-  /* Move below image on mobile */
   margin-top: 15px;
 }
 
@@ -186,7 +185,6 @@ a:hover {
   width: 100%;
   height: auto;
   order: 1;
-  /* Place image first on mobile */
   border-radius: var(--border-radius);
 }
 
@@ -205,7 +203,6 @@ a:hover {
 
 .upgrades-section {
   order: 2;
-  /* Upgrades below reviews on mobile is fine */
 }
 
 .reviews-section {
@@ -215,7 +212,6 @@ a:hover {
 .upgrade-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  /* 2 columns for mobile */
   gap: 15px;
   text-align: center;
 }
@@ -235,14 +231,12 @@ a:hover {
 
 .upgrade-item img {
   width: 50px;
-  /* Small icons for mobile */
   height: 50px;
   margin-bottom: 5px;
 }
 
 .reviews-section ul {
   list-style: none;
-  /* Remove bullets for clean look */
   padding: 0;
 }
 
@@ -269,20 +263,45 @@ footer {
 */
 @media only screen and (min-width: 768px) {
 
+  /* Update variables for larger screen header height */
+  :root {
+    --header-height-desktop: 70px;
+    /* Slightly taller header on desktop */
+    --nav-height-desktop: 40px;
+    /* Slightly shorter nav items on desktop */
+    --total-fixed-height-desktop: 110px;
+  }
+
   #wrapper {
     max-width: 1200px;
     border: 4px solid var(--primary-color);
-    /* Added border to simulate the final layout container */
+    /* Wrapper Clearance: Ensure plenty of space for tablet view */
+    padding-top: 140px !important;
   }
 
   /* Header & Nav */
   #pageHeader {
     padding: 20px 40px;
+    height: var(--header-height-desktop);
+  }
+
+  #primaryNav {
+    /* Stack navigation below the desktop header height */
+    top: var(--header-height-desktop);
+  }
+
+  /* Reduce primaryNav padding slightly to avoid text wrapping at 768px */
+  #primaryNav li a {
+    padding: 12px 18px;
+    /* Reduced from 15px 20px */
+    font-size: 1em;
+    /* Reduced from 1.1em */
   }
 
   /* Main Content Layout */
   .main-content-area {
     padding: 40px;
+    margin-top: 0;
   }
 
   /* Hero Section (Side-by-side layout for large screens) */
@@ -296,19 +315,15 @@ footer {
   .vehicle-card {
     width: 40%;
     position: absolute;
-    /* Position over the image */
     top: 20px;
     left: 20px;
     z-index: 10;
-    /* FIX CONTRAST HERE: Use white for background to pass contrast check */
     background-color: white;
-    /* Changed from rgba(255, 255, 255, 0.8) to solid white */
     border: 1px solid #ddd;
   }
 
   .delorean-image {
     width: 100%;
-    /* Image fills the container */
     height: auto;
     order: 1;
   }
@@ -331,21 +346,15 @@ footer {
 
   .upgrade-grid {
     grid-template-columns: repeat(4, 1fr);
-    /* 4 columns for desktop */
   }
 
 }
 
-/* --- FIXING CONTRAST ERROR FOR LAYERED TEXT --- */
-/* This rule is now redundant for large screens but helps if the card ever moves */
+/* --- Fixing contrast error for layered text (Fallback) --- */
 .hero-text-card {
-  /* This rule is kept but the media query fix above is stronger */
   background-color: rgba(255, 255, 255, 0.95);
-  /* Use high opacity white as a fallback */
   padding: 15px;
-  /* Adds space around the text */
   border-radius: 5px;
-  /* Keeps the rounded corner aesthetic */
 }
 
 /* ====== Vehicle Detail Page ====== */
@@ -386,7 +395,10 @@ footer {
 
 .detail-info-card h2 {
   font-size: 1.8rem;
-  margin-bottom: 0.5rem;
+  color: #333333;
+  /* FIX APPLIED: This uses the margin suggested by your colleague (30px) 
+     to push the H2 down from the image and avoid overlap. */
+  margin: 30px 0 0.5rem 0;
 }
 
 .detail-info-card section {
@@ -423,21 +435,13 @@ footer {
 }
 
 /* Style all links within the footer */
-/* --- FIX: Changed the selector from #footer a to the correct tag selector 'footer a' --- */
 footer a,
 footer a:visited,
 footer a:hover,
 footer a:focus {
-  /* Explicitly set the color to white, matching the surrounding text */
   color: #ffffff !important;
-
-  /* Removes the default underline from the link */
   text-decoration: none;
-
-  /* Ensure the font size is slightly smaller to match typical footer text */
   font-size: 0.9em;
-
-  /* Add a slight transition for a smooth hover effect (optional but nice) */
   transition: opacity 0.2s ease;
 }
 
@@ -446,14 +450,21 @@ footer a:hover {
   opacity: 0.75;
 }
 
-/* iPad Mini ONLY – Prevent tall images from overlapping title */
-@media only screen and (min-device-width: 768px) and (max-device-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
-
-  .detail-image-wrapper img {
-    width: 100% !important;
-    height: auto !important;
-    object-fit: contain !important;
-    display: block !important;
+/* Disable absolute layout for tablets (iPad Mini) and small desktops */
+@media (max-width: 1199px) {
+  .hero-section {
+    position: static !important;
+    flex-direction: column !important;
   }
 
+  .vehicle-card {
+    position: static !important;
+    width: 100% !important;
+    margin-top: 20px !important;
+  }
+
+  .delorean-image {
+    width: 100% !important;
+    height: auto !important;
+  }
 }
