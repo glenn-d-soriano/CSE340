@@ -1,72 +1,73 @@
-/******* Change Box Model ***************/
+/* =======================================
+   CSE Motors — Mobile-First Responsive Styles
+   Base styles are optimized for Mobile/Narrow Viewports.
+   Media queries use MIN-WIDTH to build up to Tablet/Desktop.
+   ======================================= */
+
+/* Box model reset */
 *,
-*:before,
-*:after {
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-/* ================================
-  1. Base & Global Styles
-================================
-*/
-
+/* Root variables */
 :root {
-  --primary-color: #2c3e50;
-  /* Dark Blue - Primary background/text */
+  --primary-color: #000000;
+  /* Black */
   --secondary-color: #3498db;
-  /* Light Blue - Accent/Link/Button */
-  --background-color: #f8f8f8;
-  /* Off-White/Light Gray for body */
+  /* Blue Accent */
+  --background-color: #d1d7dc;
+  /* Light Gray/Blue for body/section background */
   --text-color: #333;
-  /* Dark Gray for main content */
-  --font-family-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --border-radius: 6px;
-
-  /* --- NEW DIMENSIONS FOR TARGET LOOK --- */
-  --wrapper-max-width: 1000px;
-  /* Maximum width of the main content wrapper (white box) */
-  --content-padding: 20px;
-  /* Standard padding inside the wrapper */
-
-  /* Header heights */
+  --font-family-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --border-radius: 8px;
+  --padding-mobile: 15px;
+  /* Slightly reduced padding for tighter mobile fit */
+  --padding-desktop: 20px;
   --header-height-top-bar: 65px;
   --nav-height: 45px;
+  --wrapper-max-width: 3000px;
 }
 
-/* Base Body and Page Structure */
+/* ---- Global body / wrapper (Mobile-First) ---- */
+html,
 body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
   font-family: var(--font-family-sans);
   color: var(--text-color);
   background-color: var(--background-color);
   line-height: 1.6;
-  margin: 0;
-  padding-top: 0;
-  text-align: center;
-  /* Center block elements like the wrapper */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  /* FIX: Prevent horizontal scrollbar/bleed from overflowing content */
+  overflow-x: hidden;
 }
 
+/* Wrapper: The main white box. Set padding here for mobile, which the image will respect. */
 #wrapper {
-  /* Restrict the white box to a specific width */
+  width: 100%;
   max-width: var(--wrapper-max-width);
-  /* Center the white box on the screen */
   margin: 0 auto;
-
-  background-color: white;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-
-  /* Calculate the total height of fixed elements for the top margin */
-  padding-top: calc(var(--header-height-top-bar) + var(--nav-height) + 15px);
-  border: 4px solid var(--primary-color);
-
-  /* Ensure inner text is left-aligned within the wrapper */
+  background: #fff;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+  /* MOBILE BASELINE: Apply padding to everything inside the wrapper */
+  padding: var(--padding-mobile);
+  padding-top: var(--padding-desktop);
+  /* Keep top a bit larger for spacing */
   text-align: left;
 }
 
-/* Links and Buttons */
+/* Links / buttons */
 a {
   color: var(--text-color);
   text-decoration: none;
-  font-weight: bold;
+  font-weight: 600;
+  transition: color 0.2s;
 }
 
 a:hover {
@@ -74,565 +75,478 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Formatted Button Style */
+/* --- FIX: Force links in the black header to be white --- */
+.header-content-container a {
+  color: #fff;
+  /* Overrides the default link color for better contrast */
+}
+
+.header-content-container a:hover {
+  color: var(--secondary-color);
+  /* Keep the blue hover effect */
+  text-decoration: none;
+  /* Remove underline on hover for a cleaner look here */
+}
+
 .btn-own {
   display: inline-block;
-  padding: 10px 20px;
-  background-color: var(--primary-color);
-  color: white !important;
+  padding: 12px 24px;
+  background: var(--primary-color);
+  color: #fff !important;
   border-radius: var(--border-radius);
-  text-align: center;
-  text-decoration: none;
   font-weight: 600;
-  transition: background-color 0.3s;
+  text-align: center;
+  transition: background-color 0.2s, transform 0.1s;
+  width: 100%;
+  /* Full width button on mobile */
+  margin-top: 10px;
 }
 
 .btn-own:hover {
-  background-color: #1a242f;
-  /* Darker shade of primary color */
-  text-decoration: none;
+  background: #333;
+  transform: translateY(-1px);
 }
 
-/* --- FLASH MESSAGE STYLES --- */
-.messages {
-  list-style: none;
-  padding: 1rem;
-  margin: 0 auto 1rem auto;
-  border-radius: var(--border-radius);
-  font-weight: 600;
-  max-width: 90%;
-  width: 90%;
-  text-align: center;
-  border-left: 5px solid;
-}
-
-.notice {
-  background-color: #d4edda;
-  color: #155724;
-  border-color: #c3e6cb;
-}
-
-.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border-color: #f5c6cb;
-}
-
-/* ================================
-  2. Header & Navigation (Fixed for ALL sizes)
-================================
-*/
+/* Header & nav: NOW STATIC (scrolls with the page) */
 #pageHeader {
-  background-color: var(--primary-color);
-  color: white;
-
-  /* FIX: Added max-width and left/right/margin auto to align FIXED element with #wrapper */
-  position: fixed;
-  max-width: var(--wrapper-max-width);
-  /* Match the main content wrapper's width */
-  left: 0;
-  /* Anchor to left */
-  right: 0;
-  /* Anchor to right */
-  margin: 0 auto;
-  /* Center it precisely */
-  top: 0;
-  z-index: 1000;
-  height: var(--header-height-top-bar);
-
-  /* CRITICAL: Must span the full width of its new max-width container */
-  width: 100%;
+  position: static;
+  background: var(--primary-color);
+  color: #fff;
 }
 
-/* Style for the inner header content wrapper */
 .header-content-container {
-  /* This container is now 100% of the narrow #pageHeader */
-  width: 100%;
-
-  /* Use content-padding for consistent alignment */
-  padding: 0 var(--content-padding);
-
+  /* MOBILE: Stacked, centered, and uses the main padding */
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  height: var(--header-height-top-bar);
-}
-
-#pageHeader a {
-  color: white;
-  font-size: 1.5em;
-  text-decoration: none;
-}
-
-.account-link {
-  font-size: 0.9em;
-}
-
-/* --- Horizontal Navigation Bar Styling --- */
-#primaryNav {
-  background-color: var(--primary-color);
-  padding: 0;
-  border-bottom: 3px solid var(--secondary-color);
-
-  /* FIX: Added max-width and left/right/margin auto to align FIXED element with #wrapper */
-  position: fixed;
+  justify-content: center;
+  gap: 5px;
+  /* FIX 1: Add horizontal padding to space out logo/account links on mobile */
+  padding: 10px var(--padding-mobile);
+  text-align: center;
+  /* Ensure header content respects wrapper's width/centering */
   max-width: var(--wrapper-max-width);
-  /* Match the main content wrapper's width */
-  left: 0;
-  /* Anchor to left */
-  right: 0;
-  /* Anchor to right */
   margin: 0 auto;
-  /* Center it precisely */
-  top: var(--header-height-top-bar);
-  z-index: 1000;
+}
 
-  width: 100%;
-  height: var(--nav-height);
+.header-content-container>*:first-child {
+  font-size: 1.2em;
+}
+
+/* Primary nav: Mobile Scrollable Navigation */
+#primaryNav {
+  position: static;
+  background: var(--primary-color);
+  border-bottom: 3px solid var(--secondary-color);
+  padding: 5px 0;
 }
 
 #primaryNav ul {
+  /* CRITICAL: Horizontal scroll for mobile */
   list-style: none;
-  padding: 0;
-  margin: 0 auto;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   justify-content: center;
-
-  /* Now spans 100% of the narrower #primaryNav parent */
-  width: 100%;
-  padding: 0 var(--content-padding);
-  height: 100%;
-  /* Fill the nav height */
+  /* FIX 2: Add horizontal padding to space out the navigation links on mobile */
+  padding: 0 var(--padding-mobile);
+  margin: 0;
 }
 
 #primaryNav li {
-  margin: 0;
-  height: 100%;
+  flex-shrink: 0;
 }
 
 #primaryNav li a {
+  color: #fff;
   display: flex;
-  /* Use flex to easily vertically center text */
   align-items: center;
   height: 100%;
-  /* Stretch to fill LI height */
-  padding: 0 15px;
-  /* Adjust padding for better spacing */
-  background-color: transparent;
-  color: white;
-  border-radius: 0;
-  text-align: center;
-  font-size: 1em;
+  padding: 5px 10px;
   font-weight: 500;
-  transition: background-color 0.3s, color 0.3s;
+  font-size: 0.9em;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 #primaryNav li a:hover {
-  background-color: #1a242f;
-  /* Darker shade of primary color */
+  background-color: #303030;
   color: var(--secondary-color);
   text-decoration: none;
 }
 
-/* ================================
-  3. Main Content & Page Sections
-================================
-*/
+/* -------- Main content (Mobile-First) -------- */
 .main-content-area {
-  /* Apply consistent padding inside the white box */
-  padding: var(--content-padding);
+  padding-bottom: var(--padding-desktop);
+  /* FIX: Ensure the main content area itself is strictly confined to 100% of the padded space */
+  width: 100%;
+  max-width: 100%;
 }
 
-/* Hero Section (Revised: Narrow, centered layout for all screens) */
 .hero-section {
+  /* MOBILE: Stacked vertically (default flex-direction: column) */
   display: flex;
   flex-direction: column;
-  /* Always stacked (or narrow horizontal on desktop) */
-  align-items: center;
-  /* Center contents */
-  text-align: center;
+  gap: 30px;
   margin-bottom: 40px;
+  /* FIX: Ensure the hero section itself does not overflow */
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .hero-section h1 {
   font-size: 1.8em;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
-/* Use a container to hold the image and card for easier centering */
-.hero-content-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.vehicle-card {
-  background-color: rgba(52, 152, 219, 0.1);
-  padding: 15px;
-  border-radius: var(--border-radius);
-  order: 2;
-  /* Below image on mobile */
-  margin-top: 15px;
-  width: 90%;
-  /* Responsive width for card */
-  max-width: 300px;
-  text-align: left;
-  /* Reset text alignment inside card */
-  border: 1px solid #c8d7e0;
-}
-
+/* Image that was causing the bleed: Set to 100% of its container (the padded #wrapper) */
 .delorean-image {
   width: 100%;
   height: auto;
-  order: 1;
   border-radius: var(--border-radius);
-  max-width: 450px;
-  /* Limit image size */
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+  /* Remove any default margins */
+}
+
+/* vehicle card (Mobile: Center, Max width for legibility) */
+.vehicle-card {
+  background: rgba(52, 152, 219, 0.08);
+  border: 1px solid #c8d7e0;
+  padding: 20px;
+  border-radius: var(--border-radius);
+  width: 100%;
+  max-width: 360px;
+  /* Constrain width on mobile/narrow tablets */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  text-align: left;
+  margin: 0 auto;
+  /* Center the card horizontally */
 }
 
 .vehicle-card ul {
   list-style: disc;
   padding-left: 20px;
-  margin-bottom: 20px;
 }
 
-/* Details Section (Upgrades and Reviews - Now centers titles) */
+/* DETAILS: bottom sections (Mobile: Stacked vertically) */
 .details-section {
   display: flex;
   flex-direction: column;
   gap: 30px;
-  align-items: center;
-  /* Center sections on the page */
-  text-align: center;
+  margin-top: 20px;
 }
 
+/* Sections take full width on mobile */
 .upgrades-section,
 .reviews-section {
   width: 100%;
-  max-width: 450px;
-  /* Keep detail sections narrow and centered */
+  /* Remove max-width on mobile to allow full use of padded wrapper area */
+  max-width: none;
 }
 
+/* Grid for upgrades (Mobile: 2 columns) */
 .upgrade-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 15px;
-  text-align: center;
 }
 
 .upgrade-item {
-  background-color: var(--background-color);
-  border: 1px solid #ccc;
-  padding: 10px;
+  background: var(--background-color);
+  padding: 15px 10px;
   border-radius: var(--border-radius);
-  transition: transform 0.2s;
+  border: 1px solid #ddd;
+  text-align: center;
+  transition: background-color 0.2s;
 }
 
 .upgrade-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #c0c8cf;
 }
 
 .upgrade-item img {
-  /* Standardize icon size */
   width: 50px;
   height: 50px;
-  margin: 0 auto 5px auto;
+  object-fit: contain;
+  margin: 0 auto 8px;
   display: block;
-}
-
-.reviews-section ul {
-  list-style: none;
-  padding: 0;
-  text-align: left;
-  /* Reviews list text alignment */
 }
 
 .reviews-section li {
   border-bottom: 1px solid #eee;
-  padding: 5px 0;
-  font-size: 0.95em;
+  padding: 10px 0;
+  font-style: italic;
 }
 
-/* Footer (Mobile and Desktop) */
+/* Footer */
 footer {
   text-align: center;
-  padding: 10px;
-  background-color: var(--primary-color);
-  color: white;
-  font-size: 0.8em;
-}
-
-footer a,
-footer a:visited,
-footer a:hover,
-footer a:focus {
-  color: #ffffff !important;
-  text-decoration: none;
+  padding: 15px 0;
+  background: var(--primary-color);
+  color: #fff;
   font-size: 0.9em;
-  transition: opacity 0.2s ease;
 }
 
-footer a:hover {
-  opacity: 0.75;
+footer a {
+  color: #fff;
 }
 
+/* -------------------------------------------
+   @media (min-width: 768px) - TABLET/DESKTOP STYLES
+   ------------------------------------------- */
+@media (min-width:768px) {
 
-/* ================================
-  4. Large Screen Media Query
-================================
-*/
-@media only screen and (min-width: 768px) {
+  /* Wrapper: Increase padding for desktop */
+  #wrapper {
+    padding: var(--padding-desktop);
+    padding-top: var(--padding-desktop);
+  }
 
-  /* Hero Section (Small horizontal layout for desktop) */
-  .hero-content-wrapper {
+  /* Header: Horizontal layout */
+  .header-content-container {
+    height: var(--header-height-top-bar);
     flex-direction: row;
-    /* Horizontal alignment */
-    justify-content: center;
-    /* Center the grouping */
-    gap: 30px;
-    /* Limit the wrapper width to prevent the card from getting too far from the image */
-    max-width: 700px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+    /* Apply desktop padding to the header content */
+    padding: 0 var(--padding-desktop);
   }
 
-  .delorean-image {
-    order: 2;
-    /* Put image on the right */
-    max-width: 400px;
+  /* Primary Nav: Horizontal layout, centered, no scroll */
+  #primaryNav ul {
+    height: var(--nav-height);
+    flex-wrap: wrap;
+    overflow-x: visible;
+    /* Remove horizontal padding on desktop where links are centered */
+    padding: 0;
   }
 
+  /* Buttons: Allow normal inline flow on desktop */
+  .btn-own {
+    width: auto;
+  }
+
+  /* HERO SECTION: Card side-by-by-side with Image */
+  .hero-section {
+    flex-direction: row;
+    /* Switch to horizontal layout */
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 40px;
+  }
+
+  /* VEHICLE CARD (Moves to the left/first position) */
   .vehicle-card {
     order: 1;
-    /* Put card on the left */
-    margin-top: 0;
-    max-width: 350px;
-    /* Give the card a little more width */
+    /* Puts card on the left */
+    flex: 0 0 340px;
+    /* Fixed width for the card */
+    max-width: 340px;
+    margin: 0;
+    /* Remove mobile auto margin */
+    align-self: flex-start;
   }
 
-  /* Details Section (Upgrades and Reviews side-by-side) */
+  /* DELOREAN IMAGE (Moves to the right/second position) */
+  .delorean-image {
+    order: 2;
+    /* Puts image on the right */
+    flex: 1 1 0;
+    /* Allow it to fill the remaining space */
+    max-width: none;
+  }
+
+  /* DETAILS SECTION: Reviews side-by-side with Upgrades */
   .details-section {
     flex-direction: row;
-    justify-content: center;
-    gap: 50px;
-    /* Increase gap between sections */
+    justify-content: space-between;
+    gap: 40px;
+    align-items: flex-start;
   }
 
-  /* Reset max-width set for mobile centering to allow them to sit side-by-side */
-  .upgrades-section,
+  /* REVIEWS SECTION (Moves to the left/first position) */
   .reviews-section {
-    max-width: 380px;
-    text-align: center;
+    order: 1;
+    flex: 1 1 0;
+    max-width: 48%;
+    /* Constrain width to roughly half */
   }
 
+  /* UPGRADES SECTION (Moves to the right/second position) */
+  .upgrades-section {
+    order: 2;
+    flex: 1 1 0;
+    max-width: 48%;
+    /* Constrain width to roughly half */
+  }
+
+  /* Upgrade grid expands on desktop to 4 columns */
   .upgrade-grid {
     grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
   }
 }
 
-/* ====== Vehicle Detail Page (Minimal updates needed) ====== */
-.vehicle-detail-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem;
-  margin-top: 1rem;
-}
+/* ===========================================
+   --- START: Account/Login/Registration-Specific Styles ---
+   These styles are isolated using classes unique to account.html 
+   and should not affect the rest of the site.
+   =========================================== */
 
-.vehicle-detail {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  gap: 2rem;
-}
-
-/* Image wrapper */
-.detail-image-wrapper {
-  flex: 1 1 300px;
-  max-width: 500px;
-}
-
-.detail-image-wrapper img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: var(--border-radius);
-}
-
-/* Info card */
-.detail-info-card {
-  flex: 1 1 300px;
+/* Main container for the form area on the account page */
+.account-page-content {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  /* Ensure content is visually centered */
+  padding: 40px var(--padding-mobile);
 }
 
-.detail-info-card h2 {
-  font-size: 1.8rem;
-  color: #333333;
-  margin: 30px 0 0.5rem 0;
+.account-page-content h1 {
+  text-align: center;
+  color: var(--text-color);
+  /* Dark text color for contrast against light background */
+  margin-bottom: 25px;
+  font-size: 2em;
 }
 
-.detail-info-card section {
-  background-color: var(--background-color);
-  padding: 1rem;
+/* The card/box holding the login form */
+.login-container {
+  background-color: #2c3e50;
+  /* Dark blue-gray background from example */
+  border: 1px solid #4a627a;
+  /* Slightly lighter border */
   border-radius: var(--border-radius);
-}
-
-.detail-info-card h3,
-.detail-info-card h4 {
-  margin-bottom: 0.5rem;
-}
-
-.info-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.info-list li {
-  margin-bottom: 0.5rem;
-}
-
-/* Responsive for smaller screens */
-@media (max-width: 768px) {
-  .vehicle-detail {
-    flex-direction: column;
-  }
-
-  .detail-image-wrapper,
-  .detail-info-card {
-    max-width: 100%;
-  }
-}
-
-/* ================================
-  Login Page Styles (My Account)
-================================ */
-
-/* Reset box-sizing */
-*,
-*:before,
-*:after {
-  box-sizing: border-box;
-}
-
-/* Base body */
-body {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
-  margin: 0;
-  padding: 0;
-  line-height: 1.6;
-}
-
-/* Centered login container */
-main {
+  padding: 30px;
+  width: 100%;
   max-width: 400px;
-  margin: 80px auto;
-  /* space from top */
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  /* Max width for a clean form look */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  /* Stronger shadow for depth */
 }
 
-/* Page title */
-h1 {
+/* Style for the temporary alert messages (if used) */
+/* Renamed class to match the EJS template's <%= if (locals.error) %> logic */
+.flash-message {
+  background-color: #fef0cd;
+  color: #8a6d3b;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #faebcc;
   text-align: center;
   margin-bottom: 20px;
-  font-size: 1.8rem;
-  color: #2c3e50;
+  /* This will be displayed if locals.error exists in EJS */
+  display: block;
 }
 
-/* Flash messages */
-.flash {
-  color: red;
+.login-form .input-group {
+  margin-bottom: 20px;
+}
+
+.login-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #ecf0f1;
+  /* Light text color for labels against dark background */
+}
+
+.login-form input[type="email"],
+.login-form input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #4a627a;
+  /* Darker border for input fields */
+  border-radius: var(--border-radius);
+  font-size: 1em;
+  background-color: #3e526a;
+  /* Slightly lighter dark background for inputs */
+  color: #ecf0f1;
+  /* Light text for input fields */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.login-form input[type="email"]:focus,
+.login-form input[type="password"]:focus {
+  border-color: var(--secondary-color);
+  /* Blue accent on focus */
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.7);
+  outline: none;
+}
+
+/* Specific styling for the Login button container to align it well */
+.button-group {
   text-align: center;
-  margin-bottom: 15px;
+  margin-top: 10px;
+}
+
+/* The login button is styled to look like the image: small, rounded, light blue */
+.btn-login {
+  width: 100%;
+  padding: 8px 15px;
+  /* Smaller padding for a tighter button */
+  background: #5dade2;
+  /* Lighter blue for the button, as in example */
+  color: white;
+  border: none;
+  border-radius: 20px;
+  /* More rounded button corners */
+  font-size: 1em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  display: block;
+  margin: 10px auto 0;
+  /* Center it and add margin above */
+  max-width: 120px;
+  /* Constrain button width */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-login:hover {
+  background-color: #4a90e2;
+  /* Darker blue on hover */
+  transform: translateY(-1px);
+}
+
+.signup-link {
+  text-align: center;
+  margin-top: 25px;
+  /* More space above the link */
+  padding-top: 20px;
+  border-top: 1px dashed #4a627a;
+  /* Dashed border matching form background */
+  color: #ecf0f1;
+  /* Light text for "Don't have an account?" */
+}
+
+.signup-link p {
+  margin: 0;
+  font-size: 1em;
+  display: flex;
+  /* Use flex to align text and link */
+  justify-content: center;
+  /* Center horizontally */
+  align-items: center;
+  gap: 5px;
+  /* Small gap between text and link */
+}
+
+.signup-link a {
+  color: #5dade2;
+  /* Blue for the sign-up link */
   font-weight: 600;
 }
 
-/* Form labels */
-form label {
-  display: block;
-  margin-top: 10px;
-  font-weight: 500;
-}
-
-/* Form inputs */
-form input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-}
-
-/* Submit button */
-button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 20px;
-  background-color: #007bff;
-  color: #fff;
-  font-size: 1.1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
-/* Registration link */
-p {
-  text-align: center;
-  margin-top: 15px;
-  font-size: 0.95rem;
-}
-
-p a {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-p a:hover {
+.signup-link a:hover {
   text-decoration: underline;
 }
 
-/* Responsive adjustments */
-@media (min-width: 768px) {
-  main {
-    max-width: 500px;
-    padding: 30px;
-  }
-
-  h1 {
-    font-size: 2rem;
-  }
-
-  button {
-    font-size: 1.2rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  main {
-    max-width: 600px;
-    padding: 40px;
-  }
-
-  h1 {
-    font-size: 2.2rem;
-  }
-
-  button {
-    font-size: 1.3rem;
-  }
-}
+/* --- END: Account/Login/Registration-Specific Styles --- */

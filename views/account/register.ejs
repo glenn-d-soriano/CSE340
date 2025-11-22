@@ -1,0 +1,258 @@
+<%# Registration View %>
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>
+            <%= title %> - ACME
+        </title>
+        <link rel="stylesheet" href="/css/styles.css">
+        <style>
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: #f4f6f8;
+                color: #333;
+                margin: 0;
+                padding: 0;
+            }
+
+            main {
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                padding: 2rem 1rem;
+                min-height: 100vh;
+            }
+
+            .form-container {
+                background-color: #fff;
+                padding: 2.5rem;
+                border-radius: 12px;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                max-width: 450px;
+            }
+
+            h1 {
+                color: #1a202c;
+                margin-bottom: 1.5rem;
+                font-size: 2rem;
+                font-weight: 700;
+                text-align: center;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                color: #4a5568;
+                font-size: 0.9rem;
+            }
+
+            input[type="text"],
+            input[type="email"],
+            input[type="password"] {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                margin-bottom: 1.5rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                box-sizing: border-box;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+
+            input[type="text"]:focus,
+            input[type="email"]:focus,
+            input[type="password"]:focus {
+                border-color: #4c51bf;
+                outline: none;
+                box-shadow: 0 0 0 2px rgba(76, 81, 191, 0.2);
+            }
+
+            .password-container {
+                position: relative;
+            }
+
+            .password-toggle {
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-75%);
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #718096;
+                font-size: 1rem;
+                padding: 0.25rem;
+                transition: color 0.2s;
+            }
+
+            .password-toggle:hover {
+                color: #2d3748;
+            }
+
+            .register-button {
+                width: 100%;
+                padding: 0.75rem;
+                background-color: #4c51bf;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: 700;
+                cursor: pointer;
+                transition: background-color 0.3s ease, transform 0.1s;
+                margin-top: 1rem;
+            }
+
+            .register-button:hover {
+                background-color: #3b43a9;
+            }
+
+            .password-requirements {
+                font-size: 0.8rem;
+                color: #718096;
+                margin-top: -0.5rem;
+                margin-bottom: 1.5rem;
+                padding: 0.75rem;
+                border: 1px dashed #cbd5e0;
+                border-radius: 8px;
+                line-height: 1.4;
+            }
+
+            .flash-message {
+                padding: 1rem;
+                margin-bottom: 1rem;
+                border-radius: 8px;
+                font-weight: 600;
+            }
+
+            .flash-message.error {
+                background-color: #fee2e2;
+                color: #991b1b;
+                border: 1px solid #fca5a5;
+            }
+
+            .flash-message.notice {
+                background-color: #c3e6cb;
+                color: #155724;
+                border: 1px solid #a3d9b0;
+            }
+
+            p.login-link {
+                text-align: center;
+                margin-top: 1rem;
+                font-size: 0.9rem;
+            }
+
+            p.login-link a {
+                color: #4c51bf;
+                font-weight: 600;
+                text-decoration: none;
+            }
+
+            p.login-link a:hover {
+                text-decoration: underline;
+                color: #3b43a9;
+            }
+        </style>
+    </head>
+
+    <body>
+        <main>
+            <div class="form-container">
+                <h1>
+                    <%= title %>
+                </h1>
+
+                <%# Flash Message Display %>
+                    <% if (messages && Object.keys(messages).length> 0) { %>
+                        <% Object.keys(messages).forEach(type=> { %>
+                            <% messages[type].forEach(message=> { %>
+                                <div class="flash-message <%= type %>">
+                                    <%= message %>
+                                </div>
+                                <% }) %>
+                                    <% }) %>
+                                        <% } %>
+
+                                            <%# Registration Form %>
+                                                <form id="registrationForm" action="/account/register" method="post">
+                                                    <label for="account_firstname">First Name</label>
+                                                    <input type="text" id="account_firstname" name="account_firstname"
+                                                        required>
+
+                                                    <label for="account_lastname">Last Name</label>
+                                                    <input type="text" id="account_lastname" name="account_lastname"
+                                                        required>
+
+                                                    <label for="account_email">Email Address</label>
+                                                    <input type="email" id="account_email" name="account_email"
+                                                        required>
+
+                                                    <label for="account_password">Password</label>
+                                                    <div class="password-container">
+                                                        <input 
+                                                        type="password" 
+                                                        id="account_password" 
+                                                        name="account_password" required
+                                                        pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{12,}$"
+                                                        placeholder="At least 12 characters, 1 uppercase, 1 number, 1 special character"
+                                                        title="Password must be at least 12 characters and contain 1 uppercase letter, 1 number, and 1 special character.">
+
+                                                        <button type="button" class="password-toggle"
+                                                            id="passwordToggleBtn">
+                                                            <!-- Eye icon SVG -->
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20"
+                                                                height="20" viewBox="0 0 24 24" fill="none"
+                                                                stroke="currentColor" stroke-width="2"
+                                                                stroke-linecap="round" stroke-linejoin="round">
+                                                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z">
+                                                                </path>
+                                                                <circle cx="12" cy="12" r="3"></circle>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+
+                                                    <p class="password-requirements">
+                                                        Passwords must be at least 12 characters long and contain at
+                                                        least 1 capital letter, 1 number,
+                                                        and 1 special character.
+                                                    </p>
+
+                                                    <button type="submit" class="register-button">Register
+                                                        Account</button>
+                                                </form>
+
+                                                <p class="login-link">
+                                                    Already have an account? <a href="/account/login">Login here</a>
+                                                </p>
+            </div>
+        </main>
+
+        <script>
+            // Toggle password visibility
+            document.addEventListener('DOMContentLoaded', () => {
+                const passwordField = document.getElementById('account_password');
+                const toggleButton = document.getElementById('passwordToggleBtn');
+
+                if (passwordField && toggleButton) {
+                    toggleButton.addEventListener('click', () => {
+                        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                        passwordField.setAttribute('type', type);
+
+                        // Toggle SVG icon
+                        if (type === 'text') {
+                            toggleButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7s.21-1.07 5.4-5.4M12 5c7 0 10 7 10 7s-1.2 2.37-3.94 4.07M2 2l20 20M7.07 7.07l1.66 1.66"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+                        } else {
+                            toggleButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+                        }
+                    });
+                }
+            });
+        </script>
+    </body>
+
+    </html>
