@@ -7,7 +7,9 @@ require("dotenv").config()
 * *************************************** */
 async function getNav() {
     let data = await invModel.getClassifications()
-    const classificationData = data.rows; 
+    // FIX APPLIED HERE: Since invModel.getClassifications() already returns data.rows (an array),
+    // we use 'data' directly instead of trying to access 'data.rows', which would be undefined.
+    const classificationData = data; 
 
     let list = "<ul>"
     list += '<li><a href="/" title="Home page">Home</a></li>'
@@ -16,7 +18,7 @@ async function getNav() {
         classificationData.forEach((row) => {
             list += "<li>"
             list +=
-                '<a href="/inv/type/' +
+                '<a href="/inv/classification/' + 
                 row.classification_id +
                 '" title="See our inventory of ' +
                 row.classification_name +
@@ -39,7 +41,9 @@ async function buildClassificationGrid(data) {
         grid = '<ul class="inv-grid">'
         data.forEach(vehicle => {
             grid += '<li>'
-            grid += '<a href="../../inv/detail/' + vehicle.inv_id + '" title="View ' + vehicle.inv_make + ' ' + vehicle.inv_model + ' details"><img src="' + vehicle.inv_thumbnail + '" alt="Image of ' + vehicle.inv_make + ' ' + vehicle.inv_model + ' on CSE Motors"></a>'
+            // FIX APPLIED: Re-applied path sanitization (removing public/ and lowercasing)
+            const thumbnailPath = (vehicle.inv_thumbnail || "").replace("public/", "").toLowerCase(); 
+            grid += '<a href="../../inv/detail/' + vehicle.inv_id + '" title="View ' + vehicle.inv_make + ' ' + vehicle.inv_model + ' details"><img src="' + thumbnailPath + '" alt="Image of ' + vehicle.inv_make + ' ' + vehicle.inv_model + ' on CSE Motors"></a>'
             grid += '<div class="namePrice">'
             grid += '<h2>'
             grid += '<a href="../../inv/detail/' + vehicle.inv_id + '" title="View ' + vehicle.inv_make + ' ' + vehicle.inv_model + ' details">' + vehicle.inv_make + ' ' + vehicle.inv_model + '</a>'
@@ -61,6 +65,7 @@ async function buildClassificationGrid(data) {
 * Build the HTML for the vehicle detail view
 * *************************************** */
 async function buildInventoryDetail(detailData) {
+    // detailData is expected to be a single object from invModel.getInventoryById
     const vehicle = Array.isArray(detailData) ? detailData[0] : detailData;
 
     if (!vehicle) {
@@ -68,8 +73,8 @@ async function buildInventoryDetail(detailData) {
     }
 
     // Fix 1: Clean up the image path by removing the 'public/' prefix 
-    // so the browser can correctly resolve the image URL.
-    const imageUrl = (vehicle.inv_image || "").replace("public/", "");
+    // AND converting to lowercase for consistency
+    const imageUrl = (vehicle.inv_image || "").replace("public/", "").toLowerCase();
 
 
     const formattedPrice = new Intl.NumberFormat('en-US', {
@@ -79,12 +84,12 @@ async function buildInventoryDetail(detailData) {
     }).format(vehicle.inv_price || 0);
 
     // This defines the formatted mileage as the variable 'mileage'
-    // Note: The correct database field name is usually 'inv_mileage', 
-    // but we use 'inv_miles' as per your original code.
     const mileage = vehicle.inv_miles != null ? new Intl.NumberFormat('en-US').format(vehicle.inv_miles) : "N/A";
     const color = vehicle.inv_color || "N/A";
     const year = vehicle.inv_year || "N/A";
-    const stock = vehicle.inv_stock != null ? vehicle.inv_stock : "N/A"; // Replace with correct DB field if different
+    // NOTE: If inv_stock is not in your DB schema, this will be 'N/A'. 
+    // If you have a different stock field, update this line.
+    const stock = vehicle.inv_stock != null ? vehicle.inv_stock : "N/A"; 
     const description = vehicle.inv_description || "N/A";
     const makeModel = `${vehicle.inv_make || "N/A"} ${vehicle.inv_model || ""}`;
 
@@ -109,7 +114,6 @@ async function buildInventoryDetail(detailData) {
                 <section class="general-info-section">
                     <h4>General Information</h4>
                     <ul class="info-list">
-                        <!-- Fix 2: Changed 'miles' to the defined variable 'mileage' -->
                         <li><strong>Mileage:</strong> ${mileage}</li>
                         <li><strong>Color:</strong> ${color}</li>
                         <li><strong>Year:</strong> ${year}</li>
@@ -121,6 +125,31 @@ async function buildInventoryDetail(detailData) {
     `;
     return html;
 }
+
+/* ****************************************
+ * Build the classification select list
+ * FIX APPLIED: Removed <select> tags to only return <option> tags.
+ * *************************************** */
+async function buildClassificationList(classification_id = null) {
+    let data = await invModel.getClassifications()
+    // CORRECTED: Start the string with the default option ONLY.
+    let classificationList = "<option value=''>Choose a Classification</option>"
+    
+    // Data is already an array of classification objects from the model
+    data.forEach((row) => {
+      classificationList += `<option value="${row.classification_id}"`
+      if (
+        classification_id != null &&
+        Number(row.classification_id) === Number(classification_id)
+      ) {
+        classificationList += " selected "
+      }
+      classificationList += `>${row.classification_name}</option>`
+    })
+    // CORRECTED: Do not include the closing </select> tag.
+    return classificationList
+  }
+
 
 /* ****************************************
 * Middleware to handle errors
@@ -144,7 +173,8 @@ const checkJWT = (req, res, next) => {
 * Middleware to check token and load data
 * *************************************** */
 const checkLogin = (req, res, next) => {
-    if (req.cookies.jwt) {
+    // FIX APPLIED: Ensure req.cookies exists before accessing req.cookies.jwt
+    if (req.cookies && req.cookies.jwt) {
         jwt.verify(
             req.cookies.jwt,
             process.env.ACCESS_TOKEN_SECRET,
@@ -169,5 +199,6 @@ module.exports = {
     handleErrors, 
     buildInventoryDetail, 
     checkLogin,
-    checkJWT 
+    checkJWT,
+    buildClassificationList // <--- NEWLY EXPORTED
 }

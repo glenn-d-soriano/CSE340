@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6f7;
+            padding: 0;
+            margin: 0;
+        }
+
+        main {
+            max-width: 600px;
+            margin: 3rem auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            background: #4c51bf;
+            padding: 0.75rem 1.25rem;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #3b43a9;
+        }
+
+        .flash-message {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .flash-message.notice {
+            background: #e6ffed;
+            border: 1px solid #b2f5ea;
+            color: #065f46;
+        }
+
+        .flash-message.error {
+            background: #ffe6e6;
+            border: 1px solid #ffb3b3;
+            color: #7f1d1d;
+        }
+
+        .errors ul {
+            background: #ffe6e6;
+            border: 1px solid #ffb3b3;
+            color: #7f1d1d;
+            padding: 1rem;
+            border-radius: 8px;
+            list-style: none;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Add New Classification</h1>
+
+        <!-- Flash messages (success/failure) -->
+        <% if (messages && Object.keys(messages).length> 0) { %>
+            <% Object.keys(messages).forEach(type=> { %>
+                <% messages[type].forEach(message=> { %>
+                    <div class="flash-message <%= type %>">
+                        <%= message %>
+                    </div>
+                    <% }) %>
+                        <% }) %>
+                            <% } %>
+
+                                <!-- Server-side validation errors -->
+                                <% if (errors && errors.length> 0) { %>
+                                    <div class="errors">
+                                        <ul>
+                                            <% errors.forEach(err=> { %>
+                                                <li>
+                                                    <%= err.msg %>
+                                                </li>
+                                                <% }) %>
+                                        </ul>
+                                    </div>
+                                    <% } %>
+
+                                        <p>The classification name must contain <strong>no spaces</strong> and <strong>no special characters</strong>. Letters only.</p>
+
+
+                                        <form action="/inv/add-classification" method="POST" id="addClassificationForm">
+                                            <label for="classification_name">Classification Name:</label>
+                                            <input type="text" id="classification_name" name="classification_name"
+                                                required pattern="^[A-Za-z]+$"
+                                                title="Letters only. No spaces or special characters."
+                                                value="<%= typeof classification_name !== 'undefined' ? classification_name : '' %>" />
+
+                                            <button type="submit">Add Classification</button>
+                                        </form>
+    </main>
+
+    <!-- Client-side validation -->
+    <script>
+        document.getElementById("addClassificationForm").addEventListener("submit", function (e) {
+            const nameField = document.getElementById("classification_name");
+            const pattern = /^[A-Za-z]+$/;
+
+            if (!pattern.test(nameField.value)) {
+                alert("Classification name must contain only letters. No spaces or special characters.");
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+
+</html>

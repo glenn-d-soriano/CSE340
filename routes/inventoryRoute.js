@@ -1,19 +1,64 @@
-// Needed Resources 
-const express = require("express")
-const router = new express.Router() 
-const invController = require("../controllers/invController") // Now correctly requires 'invControllers'
-const utilities = require("../utilities/") // Required for error handling
+// Required Resources
+const express = require("express");
+const router = new express.Router();
+const invController = require("../controllers/invController");
+const utilities = require("../utilities/");
+const invValidation = require("../utilities/inventory-validation");
 
-// Route to build inventory by classification view
-router.get("/type/:classificationId", utilities.handleErrors(invController.buildByClassificationId));
+// ---------------------------
+// INVENTORY BY CLASSIFICATION
+// ---------------------------
+router.get(
+  "/classification/:classificationId",
+  utilities.handleErrors(invController.buildByClassificationId)
+);
 
-// Route to build the single vehicle detail view
-// This route will call the function 'buildByInvId' or 'buildByInventoryId' from invControllers.js
-router.get("/detail/:invId", utilities.handleErrors(invController.buildByInvId)) // Keeping the original function name
+// ---------------------------
+// VEHICLE DETAIL
+// ---------------------------
+router.get(
+  "/detail/:invId",
+  utilities.handleErrors(invController.buildByInvId)
+);
 
-// Task 3: New route to intentionally cause a 500 server error
-// This route directs traffic through a controller function which throws an error,
-// and the error is caught by the global error handler middleware.
-router.get("/error", utilities.handleErrors(invController.triggerError))
+// ---------------------------
+// ERROR TEST
+// ---------------------------
+router.get("/error", utilities.handleErrors(invController.triggerError));
+
+// ---------------------------
+// ADD CLASSIFICATION
+// ---------------------------
+router.get(
+  "/add-classification",
+  utilities.handleErrors(invController.buildAddClassification)
+);
+
+router.post(
+  "/add-classification",
+  invValidation.classificationRules(),
+  invValidation.checkClassificationData,
+  utilities.handleErrors(invController.addClassification)
+);
+
+// ---------------------------
+// ADD INVENTORY
+// ---------------------------
+router.get(
+  "/add-inventory",
+  utilities.handleErrors(invController.buildAddInventory)
+);
+
+router.post(
+  "/add-inventory",
+  invValidation.inventoryRules(),
+  invValidation.checkInventoryData,
+  utilities.handleErrors(invController.addInventory)
+);
+
+// ---------------------------
+// INVENTORY MANAGEMENT VIEW
+// ---------------------------
+router.get("/", utilities.handleErrors(invController.buildManagementView));
 
 module.exports = router;

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" href="/css/styles.css" />
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        main {
+            max-width: 700px;
+            margin: 3rem auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 1rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            background: #4c51bf;
+            padding: 0.75rem 1.25rem;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #3b43a9;
+        }
+
+        .flash-message {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .flash-message.notice {
+            background: #e6ffed;
+            border: 1px solid #b2f5ea;
+            color: #065f46;
+        }
+
+        .flash-message.error {
+            background: #ffe6e6;
+            border: 1px solid #ffb3b3;
+            color: #7f1d1d;
+        }
+
+        .errors ul {
+            background: #ffe6e6;
+            border: 1px solid #ffb3b3;
+            color: #7f1d1d;
+            padding: 1rem;
+            border-radius: 8px;
+            list-style: none;
+            margin-bottom: 1rem;
+        }
+
+        /* Styles for the custom message box (replacement for alert) */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            text-align: center;
+            max-width: 300px;
+            border-top: 5px solid #4c51bf;
+            /* Changed to blue to match button */
+        }
+
+        .message-box button {
+            margin-top: 15px;
+            background: #4c51bf;
+            /* Changed to blue to match button */
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>
+            <%= title %>
+        </h1>
+
+        <!-- Flash messages -->
+        <% if (messages && Object.keys(messages).length> 0) { %>
+            <% Object.keys(messages).forEach(type=> { %>
+                <% messages[type].forEach(msg=> { %>
+                    <div class="flash-message <%= type %>">
+                        <%= msg %>
+                    </div>
+                    <% }) %>
+                        <% }) %>
+                            <% } %>
+
+                                <!-- Server-side validation errors -->
+                                <% if (errors && errors.length> 0) { %>
+                                    <div class="errors">
+                                        <ul>
+                                            <% errors.forEach(err=> { %>
+                                                <li>
+                                                    <%= err.msg %>
+                                                </li>
+                                                <% }) %>
+                                        </ul>
+                                    </div>
+                                    <% } %>
+
+                                        <form action="/inv/add-inventory" method="POST" id="addInventoryForm">
+
+                                            <!-- Classification Dropdown: The classification options (Custom, NewCar, etc.) 
+                 are injected here via the 'classificationList' variable. -->
+                                            <label for="classification_id">Classification:</label>
+                                            <select name="classification_id" id="classification_id" required>
+                                                <%- classificationList %>
+                                            </select>
+                                            <!-- 
+                *** NOTE: The standalone list of names that was appearing below the dropdown
+                is not present in this file, confirming its removal.
+            -->
+
+                                            <!-- Vehicle Fields -->
+                                            <label for="inv_make">Make:</label>
+                                            <input type="text" id="inv_make" name="inv_make" required
+                                                value="<%= inv_make || '' %>">
+
+                                            <label for="inv_model">Model:</label>
+                                            <input type="text" id="inv_model" name="inv_model" required
+                                                value="<%= inv_model || '' %>">
+
+                                            <label for="inv_year">Year:</label>
+                                            <input type="number" id="inv_year" name="inv_year" min="1900" max="2100"
+                                                required value="<%= inv_year || '' %>">
+
+                                            <label for="inv_price">Price:</label>
+                                            <input type="number" id="inv_price" name="inv_price" min="0" step="0.01"
+                                                required value="<%= inv_price || '' %>">
+
+                                            <label for="inv_miles">Miles:</label>
+                                            <input type="number" id="inv_miles" name="inv_miles" min="0" step="1"
+                                                required value="<%= inv_miles || '' %>">
+
+                                            <label for="inv_color">Color:</label>
+                                            <input type="text" id="inv_color" name="inv_color" required
+                                                value="<%= inv_color || '' %>">
+
+                                            <label for="inv_image">Image Path:</label>
+                                            <input type="text" id="inv_image" name="inv_image"
+                                                value="<%= inv_image || '/images/no-image.png' %>">
+
+                                            <label for="inv_thumbnail">Thumbnail Path:</label>
+                                            <input type="text" id="inv_thumbnail" name="inv_thumbnail"
+                                                value="<%= inv_thumbnail || '/images/no-image-available.png' %>">
+
+                                            <button type="submit">Add Inventory</button>
+                                        </form>
+    </main>
+
+    <div id="messageBox" class="message-box">
+        <p id="messageText"></p>
+        <button onclick="document.getElementById('messageBox').style.display='none'">OK</button>
+    </div>
+
+    <script>
+        function showMessage(text) {
+            document.getElementById('messageText').innerText = text;
+            document.getElementById('messageBox').style.display = 'block';
+        }
+
+        document.getElementById("addInventoryForm").addEventListener("submit", function (e) {
+            const classification = document.getElementById("classification_id").value;
+            const make = document.getElementById("inv_make").value.trim();
+            const model = document.getElementById("inv_model").value.trim();
+            const year = Number(document.getElementById("inv_year").value);
+            const price = Number(document.getElementById("inv_price").value);
+            const miles = Number(document.getElementById("inv_miles").value);
+            const color = document.getElementById("inv_color").value.trim();
+
+            if (!make || !model || !year || !price || !miles || !color || !classification) {
+                showMessage("All fields are required.");
+                e.preventDefault();
+                return;
+            }
+
+            if (year < 1900 || year > 2100) {
+                showMessage("Please enter a valid year between 1900 and 2100.");
+                e.preventDefault();
+                return;
+            }
+
+            if (price < 0 || miles < 0) {
+                showMessage("Price and miles cannot be negative.");
+                e.preventDefault();
+                return;
+            }
+        });
+    </script>
+</body>
+
+</html>

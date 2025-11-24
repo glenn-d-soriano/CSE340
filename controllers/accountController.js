@@ -1,5 +1,7 @@
 const utilities = require("../utilities/"); // Import necessary utilities
 const accountModel = require("../models/account-model"); // <-- Add this
+const bcrypt = require("bcryptjs");
+
 
 /* ****************************************
  * Deliver Login view
@@ -25,19 +27,22 @@ async function buildRegister(req, res, next) {
   res.render("account/register", {
     title: "Register",
     nav,
-    messages: null
+    errors: null   // <-- REQUIRED FIX
   });
 }
 
 /* ****************************************
  * Process registration
  * *************************************** */
-/* ****************************************
-*  Process registration
-* *************************************** */
 async function registerAccount(req, res) {
   let nav = await utilities.getNav();
-  const { account_firstname, account_lastname, account_email, account_password } = req.body;
+  
+  const { 
+    account_firstname, 
+    account_lastname, 
+    account_email, 
+    account_password 
+  } = req.body;
 
   const regResult = await accountModel.registerAccount(
     account_firstname,

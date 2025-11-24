@@ -14,9 +14,10 @@ const utilities = require("./utilities/");
 
 // Route imports
 const staticRoute = require("./routes/static");
-const baseController = require("./controllers/baseController");
+// We don't need to import baseController here anymore as baseRoute handles it
 const inventoryRoute = require("./routes/inventoryRoute");
 const accountRoute = require("./routes/accountRoute"); // Account routes
+const baseRoute = require("./routes/baseRoute"); // <-- Ensure this is imported
 
 const app = express();
 
@@ -41,7 +42,7 @@ app.use(
 // Express Messages Middleware (after session)
 app.use(require("connect-flash")());
 app.use(function (req, res, next) {
-  res.locals.messages = require("express-messages")(req, res);
+  res.locals.messages = req.flash(); // make req.flash() available globally
   next();
 });
 
@@ -53,6 +54,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(expressLayouts);
 
+// Check Login (Must be loaded before routes that need user data)
+app.use(utilities.checkLogin) // <-- Added missing global middleware
+
+
 /* ***********************
  * View Engine and Templates
  ************************/
@@ -63,13 +68,16 @@ app.set("layout", "./layouts/layout");
 /* ***********************
  * Routes
  ************************/
-app.use(staticRoute);
+// Default/Home Route - MUST BE LOADED FIRST
+app.use("/", baseRoute); // <-- Use modular route file for the root path
 
-// Index route with error handling
-app.get("/", utilities.handleErrors(baseController.buildHome));
-
+// Inventory and Account Routes
 app.use("/inv", inventoryRoute);
 app.use("/account", accountRoute); // Account routes
+
+// Static route (keep near the end)
+app.use(staticRoute); 
+
 
 // 404 Route - must be last route before error handler
 app.use(async (req, res, next) => {

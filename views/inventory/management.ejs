@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %> | Inventory Management
+    </title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        /* Base styles from user prompt */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 3rem auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .flash-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .flash-message.notice {
+            background: #e6ffed;
+            border: 1px solid #b2f5ea;
+            color: #065f46;
+        }
+
+        .flash-message.error {
+            background: #ffe6e6;
+            border: 1px solid #ffb3b3;
+            color: #7f1d1d;
+        }
+
+        /* Updated styles for the modern-looking buttons */
+        .management-links {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .management-links a {
+            display: block;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 8px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Utility classes for styling the new links (mimicking Tailwind classes) */
+        .bg-blue-500 {
+            background-color: #3b82f6;
+        }
+
+        .hover\:bg-blue-700:hover {
+            background-color: #1d4ed8;
+        }
+
+        .bg-indigo-500 {
+            background-color: #6366f1;
+        }
+
+        .hover\:bg-indigo-700:hover {
+            background-color: #4338ca;
+        }
+
+        .text-white {
+            color: white;
+        }
+
+        .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .mt-8 {
+            margin-top: 2rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .text-2xl {
+            font-size: 1.5rem;
+        }
+
+        .font-semibold {
+            font-weight: 600;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        /* Table styling for Task 4 */
+        #inventoryDisplay table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #inventoryDisplay th,
+        #inventoryDisplay td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #inventoryDisplay th {
+            background-color: #f2f2f2;
+        }
+
+        #inventoryDisplay tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        #inventoryDisplay a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <% if (title) { %>
+            <h1>
+                <%= title %>
+            </h1>
+            <% } else { // This is generally handled by the controller redirecting, but keeps the EJS safe //
+                res.redirect('/') } %>
+
+                <!-- Displays flash messages sent from the controller/session (FIXED) -->
+                <% if (messages && Object.keys(messages).length> 0) { %>
+                    <% Object.keys(messages).forEach(type=> { %>
+                        <% messages[type].forEach(message=> { %>
+                            <div class="flash-message <%= type %>">
+                                <%= message %>
+                            </div>
+                            <% }) %>
+                                <% }) %>
+                                    <% } %>
+
+                                        <h2 class="text-2xl font-semibold mb-4">Classification Management</h2>
+                                        <p class="mb-6">Use the links below to create new classifications and inventory
+                                            items.</p>
+
+                                        <div class="management-links">
+                                            <!-- Task One Requirement: Link to Add New Classification View -->
+                                            <a href="/inv/add-classification"
+                                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg">
+                                                Add New Classification
+                                            </a>
+
+                                            <!-- Task One Requirement: Link to Add New Inventory Item View -->
+                                            <a href="/inv/add-inventory"
+                                                class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg">
+                                                Add New Inventory Item
+                                            </a>
+                                        </div>
+
+                                        <!-- Task 4: Inventory Item Management Section -->
+
+                                        <h2 class="text-2xl font-semibold mt-8 mb-4">Manage Inventory Items</h2>
+                                        <p class="mb-4">Select a classification to view, edit, or delete inventory
+                                            items.</p>
+
+                                        <!-- Classification Select Dropdown (Passed from invController) -->
+                                        <div class="form-group mb-4">
+                                            <label for="classificationList">Inventory by Classification:</label>
+                                            <%- classificationList %>
+                                        </div>
+
+                                        <!-- Placeholder for the Inventory Table (Filled by client-side JS in Task 4) -->
+                                        <div id="inventoryDisplay" class="mt-6">
+                                            <p class="text-gray-500">Inventory table will load here after a
+                                                classification is selected above.</p>
+                                        </div>
+
+                                        <!-- Task 4: Client-side JavaScript to handle the dropdown selection -->
+                                        <script src="/js/inventory.js"></script>
+
+    </main>
+</body>
+
+</html>
