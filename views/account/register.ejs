@@ -10,6 +10,7 @@
         </title>
         <link rel="stylesheet" href="/css/styles.css">
         <style>
+            /* ALL YOUR ORIGINAL CSS — UNCHANGED */
             body {
                 font-family: 'Inter', sans-serif;
                 background-color: #f4f6f8;
@@ -127,6 +128,8 @@
                 margin-bottom: 1rem;
                 border-radius: 8px;
                 font-weight: 600;
+                list-style: none;
+                padding-left: 0;
             }
 
             .flash-message.error {
@@ -158,8 +161,11 @@
                 color: #3b43a9;
             }
 
-            .flash-message.validation { background-color: #fef3c7; color: #92400e; }
-
+            .flash-message.validation {
+                background-color: #fef3c7;
+                color: #92400e;
+                border: 1px solid #fcd34d;
+            }
         </style>
     </head>
 
@@ -170,7 +176,7 @@
                     <%= title %>
                 </h1>
 
-                <%# Flash Message Display %>
+                <%# Flash Messages %>
                     <% if (messages && Object.keys(messages).length> 0) { %>
                         <% Object.keys(messages).forEach(type=> { %>
                             <% messages[type].forEach(message=> { %>
@@ -180,75 +186,88 @@
                                 <% }) %>
                                     <% }) %>
                                         <% } %>
-                                        <%# Validation Errors Display %>
-                                            <% if (errors) { %>
-                                                <ul class="flash-message validation">
-                                                    <% errors.array().forEach(error=> { %>
-                                                        <li>
-                                                            <%= error.msg %>
-                                                        </li>
-                                                        <% }) %>
-                                                </ul>
-                                                <% } %>
 
+                                            <%# FIXED VALIDATION ERROR BLOCK %>
+                                                <% if (errors) { %>
+                                                    <% let errorList=[]; if (typeof errors.array==="function" ) {
+                                                        errorList=errors.array(); } else if (Array.isArray(errors)) {
+                                                        errorList=errors; } else if (typeof errors==="object" &&
+                                                        errors.msg) { errorList=[errors]; } else if (typeof
+                                                        errors==="string" ) { errorList=[{ msg: errors }]; } else {
+                                                        errorList=[{ msg: "An unknown validation error occurred." }]; }
+                                                        %>
 
+                                                        <ul class="flash-message validation">
+                                                            <% errorList.forEach(error=> { %>
+                                                                <li>
+                                                                    <%= error.msg %>
+                                                                </li>
+                                                                <% }) %>
+                                                        </ul>
+                                                        <% } %>
 
-                                            <%# Registration Form %>
-                                                <form id="registrationForm" action="/account/register" method="post">
-                                                    <label for="account_firstname">First Name</label>
-                                                    <input type="text" id="account_firstname" name="account_firstname" required
-                                                        value="<%= typeof account_firstname !== 'undefined' ? account_firstname : '' %>">
+                                                            <%# Registration Form %>
+                                                                <form id="registrationForm" action="/account/register"
+                                                                    method="post">
+                                                                    <label for="account_firstname">First Name</label>
+                                                                    <input type="text" id="account_firstname"
+                                                                        name="account_firstname" required
+                                                                        value="<%= typeof account_firstname !== 'undefined' ? account_firstname : '' %>">
 
-                                                    <label for="account_lastname">Last Name</label>
-                                                    <input type="text" id="account_lastname" name="account_lastname" required
-                                                        value="<%= typeof account_lastname !== 'undefined' ? account_lastname : '' %>">
-                                                    
-                                                    <label for="account_email">Email Address</label>  
-                                                    <input type="email" id="account_email" name="account_email" required
-                                                        value="<%= typeof account_email !== 'undefined' ? account_email : '' %>">
+                                                                    <label for="account_lastname">Last Name</label>
+                                                                    <input type="text" id="account_lastname"
+                                                                        name="account_lastname" required
+                                                                        value="<%= typeof account_lastname !== 'undefined' ? account_lastname : '' %>">
 
-                                                    <label for="account_password">Password</label>
-                                                    <div class="password-container">
-                                                        <input 
-                                                        type="password" 
-                                                        id="account_password" 
-                                                        name="account_password" required
-                                                        pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{12,}$"
-                                                        placeholder="At least 12 characters, 1 uppercase, 1 number, 1 special character"
-                                                        title="Password must be at least 12 characters and contain 1 uppercase letter, 1 number, and 1 special character.">
+                                                                    <label for="account_email">Email Address</label>
+                                                                    <input type="email" id="account_email"
+                                                                        name="account_email" required
+                                                                        value="<%= typeof account_email !== 'undefined' ? account_email : '' %>">
 
-                                                        <button type="button" class="password-toggle"
-                                                            id="passwordToggleBtn">
-                                                            <!-- Eye icon SVG -->
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20"
-                                                                height="20" viewBox="0 0 24 24" fill="none"
-                                                                stroke="currentColor" stroke-width="2"
-                                                                stroke-linecap="round" stroke-linejoin="round">
-                                                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z">
-                                                                </path>
-                                                                <circle cx="12" cy="12" r="3"></circle>
-                                                            </svg>
-                                                        </button>
-                                                    </div>
+                                                                    <label for="account_password">Password</label>
+                                                                    <div class="password-container">
+                                                                        <input type="password" id="account_password"
+                                                                            name="account_password" required
+                                                                            pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{12,}$"
+                                                                            placeholder="At least 12 characters, 1 uppercase, 1 number, 1 special character"
+                                                                            title="Password must be at least 12 characters and contain 1 uppercase letter, 1 number, and 1 special character.">
 
-                                                    <p class="password-requirements">
-                                                        Passwords must be at least 12 characters long and contain at
-                                                        least 1 capital letter, 1 number,
-                                                        and 1 special character.
-                                                    </p>
+                                                                        <button type="button" class="password-toggle"
+                                                                            id="passwordToggleBtn">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                width="20" height="20"
+                                                                                viewBox="0 0 24 24" fill="none"
+                                                                                stroke="currentColor" stroke-width="2"
+                                                                                stroke-linecap="round"
+                                                                                stroke-linejoin="round">
+                                                                                <path
+                                                                                    d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z">
+                                                                                </path>
+                                                                                <circle cx="12" cy="12" r="3"></circle>
+                                                                            </svg>
+                                                                        </button>
+                                                                    </div>
 
-                                                    <button type="submit" class="register-button">Register
-                                                        Account</button>
-                                                </form>
+                                                                    <p class="password-requirements">
+                                                                        Passwords must be at least 12 characters long
+                                                                        and contain at least 1 capital letter,
+                                                                        1 number, and 1 special character.
+                                                                    </p>
 
-                                                <p class="login-link">
-                                                    Already have an account? <a href="/account/login">Login here</a>
-                                                </p>
+                                                                    <button type="submit"
+                                                                        class="register-button">Register
+                                                                        Account</button>
+                                                                </form>
+
+                                                                <p class="login-link">
+                                                                    Already have an account? <a
+                                                                        href="/account/login">Login here</a>
+                                                                </p>
             </div>
         </main>
 
         <script>
-            // Toggle password visibility
+            // ALL YOUR JS — UNCHANGED
             document.addEventListener('DOMContentLoaded', () => {
                 const passwordField = document.getElementById('account_password');
                 const toggleButton = document.getElementById('passwordToggleBtn');
@@ -258,11 +277,10 @@
                         const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
                         passwordField.setAttribute('type', type);
 
-                        // Toggle SVG icon
                         if (type === 'text') {
-                            toggleButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7s.21-1.07 5.4-5.4M12 5c7 0 10 7 10 7s-1.2 2.37-3.94 4.07M2 2l20 20M7.07 7.07l1.66 1.66"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+                            toggleButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7s.21-1.07 5.4-5.4M12 5c7 0 10 7 10 7s-1.2 2.37-3.94 4.07M2 2l20 20M7.07 7.07l1.66 1.66"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
                         } else {
-                            toggleButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+                            toggleButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
                         }
                     });
                 }

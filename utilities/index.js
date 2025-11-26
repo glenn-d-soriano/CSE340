@@ -2,13 +2,55 @@ const invModel = require("../models/inventory-model")
 const jwt = require("jsonwebtoken")
 require("dotenv").config()
 
+const Util = {}
+
 /* ****************************************
-* Build the classification side navigation
+* Middleware to check token validity (GLOBAL CHECK)
+* This runs on ALL requests to verify the JWT cookie and set res.locals.loggedin.
 * *************************************** */
-async function getNav() {
+Util.checkJWT = (req, res, next) => {
+    // FIX: Ensure req.cookies exists before accessing req.cookies.jwt
+    if (req.cookies && req.cookies.jwt) {
+        jwt.verify(
+            req.cookies.jwt,
+            process.env.ACCESS_TOKEN_SECRET,
+            function (err, accountData) {
+                if (err) {
+                    req.flash("notice", "Please log in")
+                    res.clearCookie("jwt")
+                    return res.redirect("/account/login") 
+                }
+                res.locals.accountData = accountData
+                res.locals.loggedin = 1
+                next()
+            })
+    } else {
+        next()
+    }
+}
+
+/* **************************************
+ * Middleware to check if user is logged in (PROTECTED ROUTE CHECK)
+ * This runs on specific routes (e.g., /account) to force a login/redirect.
+ * ************************************ */
+Util.checkLogin = (req, res, next) => {
+  // Checks the flag set by checkJWT
+  if (res.locals.loggedin) { 
+    next() // User is logged in, continue to the controller
+  } else {
+    // User is NOT logged in, redirect to login page
+    req.flash("notice", "Please log in.") 
+    return res.redirect("/account/login") // <-- The redirect logic
+  }
+}
+
+
+/* **************************************
+ * Build the navigation menu
+ * ************************************ */
+Util.getNav = async function () {
     let data = await invModel.getClassifications()
-    // FIX APPLIED HERE: Since invModel.getClassifications() already returns data.rows (an array),
-    // we use 'data' directly instead of trying to access 'data.rows', which would be undefined.
+    // Since invModel.getClassifications() already returns the array of rows.
     const classificationData = data; 
 
     let list = "<ul>"
@@ -35,13 +77,13 @@ async function getNav() {
 /* ****************************************
 * Build the classification view grid
 * *************************************** */
-async function buildClassificationGrid(data) {
+Util.buildClassificationGrid = async function (data) {
     let grid
     if (data.length > 0) {
         grid = '<ul class="inv-grid">'
         data.forEach(vehicle => {
             grid += '<li>'
-            // FIX APPLIED: Re-applied path sanitization (removing public/ and lowercasing)
+            // Sanitizing path by removing public/ and lowercasing
             const thumbnailPath = (vehicle.inv_thumbnail || "").replace("public/", "").toLowerCase(); 
             grid += '<a href="../../inv/detail/' + vehicle.inv_id + '" title="View ' + vehicle.inv_make + ' ' + vehicle.inv_model + ' details"><img src="' + thumbnailPath + '" alt="Image of ' + vehicle.inv_make + ' ' + vehicle.inv_model + ' on CSE Motors"></a>'
             grid += '<div class="namePrice">'
@@ -64,7 +106,7 @@ async function buildClassificationGrid(data) {
 /* ****************************************
 * Build the HTML for the vehicle detail view
 * *************************************** */
-async function buildInventoryDetail(detailData) {
+Util.buildInventoryDetail = async function (detailData) {
     // detailData is expected to be a single object from invModel.getInventoryById
     const vehicle = Array.isArray(detailData) ? detailData[0] : detailData;
 
@@ -72,8 +114,7 @@ async function buildInventoryDetail(detailData) {
         return `<p class="notice">Sorry, no vehicle information could be found.</p>`;
     }
 
-    // Fix 1: Clean up the image path by removing the 'public/' prefix 
-    // AND converting to lowercase for consistency
+    // Clean up the image path
     const imageUrl = (vehicle.inv_image || "").replace("public/", "").toLowerCase();
 
 
@@ -83,12 +124,9 @@ async function buildInventoryDetail(detailData) {
         maximumFractionDigits: 0
     }).format(vehicle.inv_price || 0);
 
-    // This defines the formatted mileage as the variable 'mileage'
     const mileage = vehicle.inv_miles != null ? new Intl.NumberFormat('en-US').format(vehicle.inv_miles) : "N/A";
     const color = vehicle.inv_color || "N/A";
     const year = vehicle.inv_year || "N/A";
-    // NOTE: If inv_stock is not in your DB schema, this will be 'N/A'. 
-    // If you have a different stock field, update this line.
     const stock = vehicle.inv_stock != null ? vehicle.inv_stock : "N/A"; 
     const description = vehicle.inv_description || "N/A";
     const makeModel = `${vehicle.inv_make || "N/A"} ${vehicle.inv_model || ""}`;
@@ -128,11 +166,10 @@ async function buildInventoryDetail(detailData) {
 
 /* ****************************************
  * Build the classification select list
- * FIX APPLIED: Removed <select> tags to only return <option> tags.
  * *************************************** */
-async function buildClassificationList(classification_id = null) {
+Util.buildClassificationList = async function (classification_id = null) {
     let data = await invModel.getClassifications()
-    // CORRECTED: Start the string with the default option ONLY.
+    // Start the string with the default option ONLY.
     let classificationList = "<option value=''>Choose a Classification</option>"
     
     // Data is already an array of classification objects from the model
@@ -146,7 +183,6 @@ async function buildClassificationList(classification_id = null) {
       }
       classificationList += `>${row.classification_name}</option>`
     })
-    // CORRECTED: Do not include the closing </select> tag.
     return classificationList
   }
 
@@ -155,50 +191,7 @@ async function buildClassificationList(classification_id = null) {
 * Middleware to handle errors
 * Wrap an async function in this middleware to catch errors
 * *************************************** */
-const handleErrors = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
+Util.handleErrors = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
 
-/* ****************************************
-* Middleware to check token validity
-* *************************************** */
-const checkJWT = (req, res, next) => {
-    if (res.locals.loggedin) {
-        next()
-    } else {
-        req.flash("notice", "Please log in.")
-        return res.redirect("/account/login")
-    }
-}
 
-/* ****************************************
-* Middleware to check token and load data
-* *************************************** */
-const checkLogin = (req, res, next) => {
-    // FIX APPLIED: Ensure req.cookies exists before accessing req.cookies.jwt
-    if (req.cookies && req.cookies.jwt) {
-        jwt.verify(
-            req.cookies.jwt,
-            process.env.ACCESS_TOKEN_SECRET,
-            function (err, accountData) {
-                if (err) {
-                    req.flash("notice", "Please log in")
-                    res.clearCookie("jwt")
-                    return res.redirect("/account/login")
-                }
-                res.locals.accountData = accountData
-                res.locals.loggedin = 1
-                next()
-            })
-    } else {
-        next()
-    }
-}
-
-module.exports = { 
-    getNav, 
-    buildClassificationGrid, 
-    handleErrors, 
-    buildInventoryDetail, 
-    checkLogin,
-    checkJWT,
-    buildClassificationList // <--- NEWLY EXPORTED
-}
+module.exports = Util

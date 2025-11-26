@@ -1,0 +1,48 @@
+<% if (title) { %>
+    <h1>
+        <%= title %>
+    </h1>
+    <% } else { res.redirect('/') } %>
+
+        <!-- Display errors -->
+        <% if (errors) { %>
+            <ul class="notice-list">
+                <% errors.forEach(error=> { %>
+                    <li class="notice">
+                        <%= error.msg %>
+                    </li>
+                    <% }) %>
+            </ul>
+            <% } %>
+
+                <!-- Display flash messages (notice) -->
+                <% if (notice) { %>
+                    <div class="flash-message notice">
+                        <p>
+                            <%= notice %>
+                        </p>
+                    </div>
+                    <% } %>
+
+                        <!-- FIX 1: Display the user's name in the welcome message using locals.accountData -->
+                        <!-- FIX APPLIED: Changed conditional check to locals.loggedin and added safe access for account_firstname -->
+                        <% if (locals.loggedin) { %>
+                            <!-- Use locals.accountData.account_firstname if available, otherwise just say "Welcome" -->
+                            <h2>Welcome <%= locals.accountData ? locals.accountData.account_firstname : 'User' %>!</h2>
+                            <p>You're logged in. This is your personal account management view.</p>
+
+                            <!-- FIX 2: Add the Edit Account Information link -->
+                            <p><a href="/account/update">Edit Account Information</a></p>
+
+                            <!-- FIX 3: Conditional display for Inventory Management (for Employee or Admin) -->
+                            <% const accountType=locals.accountData ? locals.accountData.account_type : '' ; if
+                                (accountType==='Employee' || accountType==='Admin' ) { %>
+                                <hr>
+                                <h2>Inventory Management</h2>
+                                <p><a href="/inv">Click here to manage inventory.</a></p>
+                                <% } %>
+                                    <% } else { %>
+                                        <!-- Fallback message for unauthenticated users (should be rare if checkLogin utility is working) -->
+                                        <h2>Welcome!</h2>
+                                        <p>You must be logged in to view your account management area.</p>
+                                        <% } %>

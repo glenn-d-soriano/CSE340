@@ -10,7 +10,6 @@
         </title>
         <link rel="stylesheet" href="/css/styles.css">
         <style>
-            /* Modern, professional styling for the form and page */
             body {
                 font-family: 'Inter', sans-serif;
                 background-color: #f4f6f8;
@@ -32,7 +31,6 @@
                 align-items: center;
                 padding: 2rem 1rem;
                 min-height: calc(100vh - 100px);
-                /* Adjust based on header/footer size */
             }
 
             .form-container {
@@ -42,7 +40,6 @@
                 box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
                 width: 100%;
                 max-width: 400px;
-                /* Slightly smaller than register form */
             }
 
             h1 {
@@ -116,23 +113,33 @@
                 text-decoration: underline;
             }
 
-            .flash {
+            .flash,
+            .notice {
                 padding: 1rem;
                 margin-bottom: 1rem;
                 border-radius: 8px;
                 font-weight: 600;
+                text-align: center;
+                border: 1px solid;
+            }
+
+            .flash,
+            .notice {
                 background-color: #fee2e2;
                 color: #991b1b;
-                border: 1px solid #fca5a5;
-                text-align: center;
+                border-color: #fca5a5;
+            }
+
+            .notice-success {
+                background-color: #d1fae5;
+                color: #065f46;
+                border-color: #34d399;
             }
         </style>
     </head>
 
     <body>
-        <header>
-            
-        </header>
+        <header></header>
 
         <main>
             <div class="form-container">
@@ -140,34 +147,41 @@
                     <%= title %>
                 </h1>
 
-                <% if (notice) { %>
-                    <p class="flash" style="background-color: #d1fae5; color: #065f46; border-color: #34d399;">
-                        <%= notice %>
-                    </p>
-                    <% } %>
-                
-                        <% if (errors) { %>
-                            <% errors.forEach(error=> { %>
-                                <p class="flash">
-                                    <%= error %>
-                                </p>
+                <% if (messages) { %>
+                    <% Object.keys(messages).forEach(type=> { %>
+                        <% messages[type].forEach(message=> { %>
+                            <p class="flash <%= type === 'notice' ? 'notice-success' : '' %>">
+                                <%= message %>
+                            </p>
+                            <% }) %>
                                 <% }) %>
                                     <% } %>
 
-                        <form action="/account/login" method="POST">
-                            <label for="account_email">Email:</label>
-                            <input type="email" name="account_email" id="account_email" required>
+                                        <% if (errors) { %>
+                                            <ul class="flash notice">
+                                                <% let errorList=Array.isArray(errors) ? errors : [errors]; %>
+                                                    <% errorList.forEach(error=> { %>
+                                                        <li>
+                                                            <%= error.msg ? error.msg : error %>
+                                                        </li>
+                                                        <% }) %>
+                                            </ul>
+                                            <% } %>
 
-                            <label for="account_password">Password:</label>
-                            <input type="password" name="account_password" id="account_password" required>
+                                                <form id="loginForm" action="/account/login" method="post">
+                                                    <label for="account_email">Email:</label>
+                                                    <input type="email" name="account_email" id="account_email" required
+                                                        value="<%= typeof account_email !== 'undefined' ? account_email : '' %>">
 
-                            <button type="submit">Login</button>
-                        </form>
+                                                    <label for="account_password">Password:</label>
+                                                    <input type="password" name="account_password" id="account_password"
+                                                        required>
 
-                        <p>
-                            Don't have an account?
-                            <a href="/account/register">Register here</a>
-                        </p>
+                                                    <button type="submit">Login</button>
+                                                </form>
+
+                                                <p>Don't have an account? <a href="/account/register">Register here</a>
+                                                </p>
             </div>
         </main>
     </body>

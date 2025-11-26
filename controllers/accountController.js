@@ -1,7 +1,8 @@
 const utilities = require("../utilities/"); // Import necessary utilities
-const accountModel = require("../models/account-model"); // <-- Add this
+const accountModel = require("../models/account-model"); // Account model for database interactions
 const bcrypt = require("bcryptjs");
-
+const jwt = require("jsonwebtoken");
+require("dotenv").config(); // To access process.env.ACCESS_TOKEN_SECRET
 
 /* ****************************************
  * Deliver Login view
@@ -16,6 +17,7 @@ async function buildLogin(req, res, next) {
     nav,
     errors: errors.length > 0 ? errors : null,
     notice: notice.length > 0 ? notice : null,
+    account_email: "", // Always define to prevent EJS crash
   });
 }
 
@@ -27,7 +29,7 @@ async function buildRegister(req, res, next) {
   res.render("account/register", {
     title: "Register",
     nav,
-    errors: null   // <-- REQUIRED FIX
+    errors: null,
   });
 }
 
@@ -44,24 +46,129 @@ async function registerAccount(req, res) {
     account_password 
   } = req.body;
 
-  const regResult = await accountModel.registerAccount(
-    account_firstname,
-    account_lastname,
-    account_email,
-    account_password
-  );
+  try {
+    // 1. Hash the password before storing
+    const hashedPassword = await bcrypt.hash(account_password, 10); // 10 salt rounds
 
-  if (regResult) {
-    // Add flash message for successful registration
-    req.flash("notice", `Congratulations, you're registered ${account_firstname}. Please log in.`);
-    
-    // Redirect to login page (flash message will show there)
-    res.redirect("/account/login");
-  } else {
-    req.flash("error", "Sorry, the registration failed.");
+    // 2. Store account in the database
+    const regResult = await accountModel.registerAccount(
+      account_firstname,
+      account_lastname,
+      account_email,
+      hashedPassword
+    );
+
+    // 3. Handle result
+    if (regResult) {
+      req.flash(
+        "notice",
+        `Congratulations, you're registered ${account_firstname}. Please log in.`
+      );
+      res.redirect("/account/login");
+    } else {
+      req.flash("error", "Sorry, the registration failed.");
+      res.redirect("/account/register");
+    }
+  } catch (error) {
+    console.error("Registration Error:", error);
+    req.flash("error", "An unexpected error occurred during registration.");
     res.redirect("/account/register");
   }
 }
 
+/* ****************************************
+ * Process login request with debugging
+ * ************************************ */
+async function accountLogin(req, res) {
+  let nav = await utilities.getNav();
 
-module.exports = { buildLogin, buildRegister, registerAccount };
+  // DEBUG: Log form submission
+  console.log("Body:", req.body);
+  const { account_email, account_password } = req.body;
+  console.log("Email:", account_email, "Password:", account_password);
+
+  try {
+    // 1. Fetch account data
+    const accountData = await accountModel.getAccountByEmail(account_email);
+    console.log("Account Data:", accountData); // DEBUG: check what DB returns
+
+    // 2. Handle email not found
+    if (!accountData) {
+      req.flash("notice", "Please check your credentials and try again.");
+      return res.status(400).render("account/login", {
+        title: "Login",
+        nav,
+        errors: null,
+        notice: req.flash("notice"),
+        account_email, // preserve email for sticky form
+      });
+    }
+
+    // 3. Compare passwords
+    const passwordMatch = await bcrypt.compare(account_password, accountData.account_password);
+    if (!passwordMatch) {
+      req.flash("notice", "Please check your credentials and try again.");
+      return res.status(400).render("account/login", {
+        title: "Login",
+        nav,
+        errors: null,
+        notice: req.flash("notice"),
+        account_email,
+      });
+    }
+
+    // 4. Successful login
+    delete accountData.account_password;
+    const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
+
+    // 5. Set HTTP-only cookie
+    const cookieOptions = { httpOnly: true, maxAge: 3600 * 1000 };
+    if (process.env.NODE_ENV !== "development") cookieOptions.secure = true;
+    res.cookie("jwt", accessToken, cookieOptions);
+
+    return res.redirect("/account/");
+  } catch (error) {
+    console.error(error);
+    req.flash("error", "An unexpected error occurred. Please try again.");
+    return res.status(500).render("account/login", {
+      title: "Login",
+      nav,
+      errors: null,
+      notice: req.flash("error"),
+      account_email,
+    });
+  }
+}
+
+/* ****************************************
+ * Deliver account management view 
+ * *************************************** */
+async function buildAccountManagement(req, res, next) {
+  let nav = await utilities.getNav();
+  const notice = req.flash("notice");
+
+  res.render("account/account-management", {
+    title: "Account Management",
+    nav,
+    errors: null,
+    notice: notice.length > 0 ? notice : null,
+  });
+}
+
+/* ****************************************
+ * Process logout request
+ * ************************************ */
+async function accountLogout(req, res) {
+  res.clearCookie("jwt");
+  req.flash("notice", "You have been logged out.");
+  res.redirect("/");
+}
+
+module.exports = { 
+  buildLogin, 
+  buildRegister, 
+  registerAccount, 
+  accountLogin,
+  buildAccountManagement,
+  accountLogout
+};

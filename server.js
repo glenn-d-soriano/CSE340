@@ -6,7 +6,7 @@
 require("dotenv").config();
 
 const express = require("express");
-const bodyParser = require("body-parser"); // Must be at the top
+const bodyParser = require("body-parser"); 
 const expressLayouts = require("express-ejs-layouts");
 const session = require("express-session");
 const pool = require("./database/");
@@ -20,6 +20,8 @@ const accountRoute = require("./routes/accountRoute"); // Account routes
 const baseRoute = require("./routes/baseRoute"); // <-- Ensure this is imported
 
 const app = express();
+const cookieParser = require("cookie-parser");
+
 
 /* ***********************
  * Middleware
@@ -54,8 +56,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(expressLayouts);
 
-// Check Login (Must be loaded before routes that need user data)
-app.use(utilities.checkLogin) // <-- Added missing global middleware
+// Cookie Parser Middleware (MUST BE BEFORE checkJWT)
+app.use(cookieParser());
+
+/* ***********************
+ * Universal JWT Check Middleware
+ * Applied to ALL requests to check the cookie and set res.locals.loggedin.
+ * MUST be after cookieParser.
+ * ************************/
+app.use(utilities.checkJWT); // <-- CORRECT UNIVERSAL MIDDLEWARE APPLIED
+
+// Removed: app.use(utilities.checkLogin) as it is used only for protected routes.
 
 
 /* ***********************
@@ -64,6 +75,16 @@ app.use(utilities.checkLogin) // <-- Added missing global middleware
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
 app.set("layout", "./layouts/layout");
+
+/* ***********************
+ * Locals & General Variables
+ * ************************/
+// Set up global res.locals.nav variable for the navigation bar
+// This must run before all route handlers
+app.use(async (req, res, next) => {
+  res.locals.nav = await utilities.getNav();
+  next();
+});
 
 /* ***********************
  * Routes
