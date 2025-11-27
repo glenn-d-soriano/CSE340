@@ -73,6 +73,7 @@ invCont.buildByInvId = async (req, res, next) => {
 
 /* ***************************
  * Build management view
+ * * FIX APPLIED: Re-added messages: req.flash()
  * ************************** */
 invCont.buildManagementView = async (req, res) => {
     const nav = await utilities.getNav(); // <--- USE SHARED UTILITY
@@ -85,20 +86,21 @@ invCont.buildManagementView = async (req, res) => {
     res.render("inventory/management", {
         title: "Inventory Management",
         nav,
-        messages: req.flash(),
-        classificationList // <-- NOW CORRECTLY PASSING THE VARIABLE
+        messages: req.flash(), // <-- RE-ADDED: Ensure flash messages are passed
+        classificationList 
     });
 };
 
 /* ***************************
  * Deliver Add Classification View
+ * * FIX APPLIED: Re-added messages: req.flash()
  * ************************** */
 invCont.buildAddClassification = async (req, res) => {
     const nav = await utilities.getNav(); // <--- USE SHARED UTILITY
     res.render("inventory/add-classification", {
         title: "Add New Classification",
         nav,
-        messages: req.flash(),
+        messages: req.flash(), // <-- RE-ADDED: Ensure flash messages are passed
         errors: [],
         classification_name: ""
     });
@@ -106,6 +108,7 @@ invCont.buildAddClassification = async (req, res) => {
 
 /* ***************************
  * Process Add Classification
+ * * FIX APPLIED: Re-added messages: req.flash() to the error render
  * ************************** */
 invCont.addClassification = async (req, res) => {
     const errors = validationResult(req);
@@ -116,7 +119,8 @@ invCont.addClassification = async (req, res) => {
             title: "Add New Classification",
             nav,
             errors: errors.array(),
-            classification_name: req.body.classification_name
+            classification_name: req.body.classification_name,
+            messages: req.flash() // <-- RE-ADDED: Ensure flash messages are passed here if needed (e.g. error from a previous action)
         });
     }
 
@@ -125,7 +129,7 @@ invCont.addClassification = async (req, res) => {
 
     if (result) {
         req.flash("notice", `Classification "${classification_name}" added successfully.`);
-        // Redirect will trigger a new request, which calls utilities.getNav() correctly.
+        // Redirect is the correct pattern for success
         return res.redirect("/inv");
     }
 
@@ -134,14 +138,14 @@ invCont.addClassification = async (req, res) => {
     res.render("inventory/add-classification", {
         title: "Add New Classification",
         nav,
-        messages: req.flash(),
+        messages: req.flash(), // <-- RE-ADDED: Ensure flash messages are passed
         classification_name
     });
 };
 
 /* ***************************
  * Deliver Add Inventory View
- * * FIX APPLIED HERE: Building and passing classificationList HTML string
+ * * FIX APPLIED HERE: Re-added messages: req.flash()
  * ************************** */
 invCont.buildAddInventory = async (req, res) => {
     const nav = await utilities.getNav(); // <--- USE SHARED UTILITY
@@ -154,7 +158,7 @@ invCont.buildAddInventory = async (req, res) => {
         title: "Add New Inventory Item",
         nav,
         classificationList, // <-- Passing the HTML string
-        messages: req.flash(),
+        messages: req.flash(), // <-- RE-ADDED: Ensure flash messages are passed
         errors: [],
         classification_id: "",
         inv_make: "",
@@ -170,7 +174,7 @@ invCont.buildAddInventory = async (req, res) => {
 
 /* ***************************
  * Process Add Inventory
- * * FIX: Added placeholder for inv_description to satisfy the model's 10 parameters
+ * * FIX APPLIED: Re-added messages: req.flash() to the failure render
  * ************************** */
 invCont.addInventory = async (req, res) => {
     const errors = validationResult(req);
@@ -186,6 +190,7 @@ invCont.addInventory = async (req, res) => {
             nav,
             classificationList, // <-- Passing the HTML string for select list
             errors: errors.array(),
+            messages: req.flash(), // <-- RE-ADDED: Ensure flash messages are passed here if needed
             ...req.body
         });
     }
@@ -221,7 +226,7 @@ invCont.addInventory = async (req, res) => {
         title: "Add New Inventory Item",
         nav,
         classificationList, // <-- Passing the HTML string for select list
-        messages: req.flash(),
+        messages: req.flash(), // <-- RE-ADDED: Ensure flash messages are passed
         ...req.body
     });
 };
