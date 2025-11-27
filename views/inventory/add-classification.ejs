@@ -46,6 +46,8 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
+            transition: background 0.3s ease;
+            /* Added transition for better UX */
         }
 
         button:hover {
@@ -85,58 +87,58 @@
 
 <body>
     <main>
-        <h1>Add New Classification</h1>
+        <% if (title) { %>
+            <h1>
+                <%= title %>
+            </h1>
+            <% } %>
 
-        <!-- Flash messages (success/failure) -->
-        <% if (messages && Object.keys(messages).length> 0) { %>
-            <% Object.keys(messages).forEach(type=> { %>
-                <% messages[type].forEach(message=> { %>
-                    <div class="flash-message <%= type %>">
-                        <%= message %>
-                    </div>
-                    <% }) %>
-                        <% }) %>
-                            <% } %>
-
-                                <!-- Server-side validation errors -->
-                                <% if (errors && errors.length> 0) { %>
-                                    <div class="errors">
-                                        <ul>
-                                            <% errors.forEach(err=> { %>
-                                                <li>
-                                                    <%= err.msg %>
-                                                </li>
-                                                <% }) %>
-                                        </ul>
-                                    </div>
+                <!-- Flash messages (success/failure) -->
+                <% if (messages && Object.keys(messages).length> 0) { %>
+                    <% Object.keys(messages).forEach(type=> { %>
+                        <% messages[type].forEach(message=> { %>
+                            <div class="flash-message <%= type %>">
+                                <%= message %>
+                            </div>
+                            <% }) %>
+                                <% }) %>
                                     <% } %>
 
-                                        <p>The classification name must contain <strong>no spaces</strong> and <strong>no special characters</strong>. Letters only.</p>
+                                        <!-- Server-side validation errors -->
+                                        <% if (errors && errors.length> 0) { %>
+                                            <div class="errors">
+                                                <ul>
+                                                    <% errors.forEach(err=> { %>
+                                                        <li>
+                                                            <%= err.msg %>
+                                                        </li>
+                                                        <% }) %>
+                                                </ul>
+                                            </div>
+                                            <% } %>
+
+                                                <p>The classification name must contain <strong>no spaces</strong> and
+                                                    <strong>no special characters</strong>. Letters only.</p>
 
 
-                                        <form action="/inv/add-classification" method="POST" id="addClassificationForm">
-                                            <label for="classification_name">Classification Name:</label>
-                                            <input type="text" id="classification_name" name="classification_name"
-                                                required pattern="^[A-Za-z]+$"
-                                                title="Letters only. No spaces or special characters."
-                                                value="<%= typeof classification_name !== 'undefined' ? classification_name : '' %>" />
+                                                <form action="/inv/add-classification" method="POST"
+                                                    id="addClassificationForm">
+                                                    <label for="classification_name">Classification Name:</label>
+                                                    <input type="text" id="classification_name"
+                                                        name="classification_name" required <% /* REMOVED client-side
+                                                        pattern and title attribute to allow server-side validation to
+                                                        run */ %>
+                                                    value="<%= typeof classification_name !=='undefined' ?
+                                                        classification_name : '' %>"
+                                                        />
 
-                                            <button type="submit">Add Classification</button>
-                                        </form>
+                                                        <button type="submit">Add Classification</button>
+                                                </form>
     </main>
 
-    <!-- Client-side validation -->
-    <script>
-        document.getElementById("addClassificationForm").addEventListener("submit", function (e) {
-            const nameField = document.getElementById("classification_name");
-            const pattern = /^[A-Za-z]+$/;
+    <!-- The client-side <script> block which contained the prohibited alert() 
+         and duplicate validation logic has been removed. -->
 
-            if (!pattern.test(nameField.value)) {
-                alert("Classification name must contain only letters. No spaces or special characters.");
-                e.preventDefault();
-            }
-        });
-    </script>
 </body>
 
 </html>
