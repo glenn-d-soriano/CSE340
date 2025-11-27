@@ -38,9 +38,25 @@ invController.buildByClassificationId = async function (req, res, next) {
   // if the 'data' array passed to it is empty (data.length === 0).
   const grid = await utilities.buildClassificationGrid(data);
 
-  // 4. Render the page
+  // ==========================================================
+  // 4. LOGIC TO CONTROL THE H1 TITLE 
+  // ==========================================================
+  
+  // Core classification IDs (1 through 6) where the H1 title should be suppressed.
+  const coreClassificationIds = ["1", "2", "3", "4", "5", "6"]; 
+  
+  let pageTitle = null; 
+
+  // Check if the requested classification_id is NOT one of the core IDs.
+  if (!coreClassificationIds.includes(classification_id)) {
+      // If it's a newly added classification, set the title.
+      pageTitle = className + " vehicles";
+  }
+  // If it IS a core ID, pageTitle remains null, hiding the H1 element in the EJS view.
+
+  // 5. Render the page
   res.render("inventory/classification", {
-    title: className + " vehicles",
+    title: pageTitle, // <-- Pass the conditionally set title
     nav,
     grid,
     messages: req.flash(),
@@ -198,8 +214,8 @@ invController.addInventory = async function (req, res) {
     // If validation passes, insert data
     // NOTE: inv_description is passed as the 3rd argument in the model
     const result = await invModelDb.addInventory(
-        inv_make, inv_model, final_description, inv_image, inv_thumbnail, inv_price, 
-        inv_year, inv_miles, inv_color, classification_id
+        inv_make, inv_model, final_description, inv_image, inv_thumbnail, 
+        inv_price, inv_year, inv_miles, inv_color, classification_id
     );
 
     if (result) {
