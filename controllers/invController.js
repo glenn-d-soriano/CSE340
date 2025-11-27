@@ -1,7 +1,7 @@
-const invModel = require("../models/inventory-model");
+const invModelDb = require("../models/inventory-model"); // Keeping this one
 const utilities = require("../utilities/");
 const { validationResult } = require("express-validator");
-
+// Removed the duplicate 'const invModelDb = require("../models/inventory-model");'
 
 const invController = {};
 
@@ -10,14 +10,40 @@ const invController = {};
  * ************************** */
 invController.buildByClassificationId = async function (req, res, next) {
   const classification_id = req.params.classificationId;
+  
+  // 1. Get Inventory Data (could be an empty array if no cars exist)
   const data = await invModelDb.getInventoryByClassificationId(classification_id);
-  const grid = await utilities.buildClassificationGrid(data);
   let nav = await utilities.getNav();
-  const className = data[0].classification_name;
+  
+  // 2. Get Classification Name (Robustly)
+  let className = "Unknown";
+  try {
+      const classificationData = await invModelDb.getClassificationById(classification_id);
+      
+      if (classificationData) {
+          className = classificationData.classification_name;
+      } else {
+          // If the classification ID itself is invalid, redirect home.
+          req.flash("error", "The requested vehicle classification does not exist.");
+          return res.redirect("/");
+      }
+  } catch (error) {
+      console.error("Error retrieving classification data:", error);
+      req.flash("error", "Error accessing the classification.");
+      return res.redirect("/");
+  }
+
+  // 3. Build Grid
+  // This utility function MUST return the "No cars available" message 
+  // if the 'data' array passed to it is empty (data.length === 0).
+  const grid = await utilities.buildClassificationGrid(data);
+
+  // 4. Render the page
   res.render("inventory/classification", {
     title: className + " vehicles",
     nav,
     grid,
+    messages: req.flash(),
   });
 };
 
@@ -27,13 +53,23 @@ invController.buildByClassificationId = async function (req, res, next) {
 invController.buildByInvId = async function (req, res, next) {
   const inv_id = req.params.invId;
   const data = await invModelDb.getInventoryById(inv_id);
+  
+  // ADDED CHECK: If no vehicle found, redirect to prevent crashing
+  if (!data) {
+    req.flash("notice", "Sorry, that vehicle was not found.");
+    return res.redirect("/"); 
+  }
+  
   const detail = await utilities.buildInventoryDetail(data);
   let nav = await utilities.getNav();
   const vehicleName = `${data.inv_make} ${data.inv_model}`;
+  
   res.render("inventory/detail", {
     title: vehicleName,
     nav,
-    detail,
+    // FIX: Renamed 'detail' to 'detailHTML' to match what the EJS template is expecting.
+    detailHTML: detail,
+    messages: req.flash(),
   });
 };
 
@@ -89,6 +125,7 @@ invController.addClassification = async function (req, res) {
   }
 
   // If validation passes, insert data
+  // This is the function that was missing in the model!
   const result = await invModelDb.addClassification(classification_name);
 
   if (result) {
@@ -159,6 +196,7 @@ invController.addInventory = async function (req, res) {
     }
 
     // If validation passes, insert data
+    // NOTE: inv_description is passed as the 3rd argument in the model
     const result = await invModelDb.addInventory(
         inv_make, inv_model, final_description, inv_image, inv_thumbnail, inv_price, 
         inv_year, inv_miles, inv_color, classification_id
@@ -202,7 +240,7 @@ invController.getInventoryJSON = async (req, res, next) => {
     const invData = await invModelDb.getInventoryByClassificationId(classification_id);
 
     // Filter out irrelevant columns before sending
-    if (invData[0].inv_id) {
+    if (invData[0]?.inv_id) {
         return res.json(invData);
     } else {
         next(new Error("No inventory found"));
@@ -300,6 +338,30 @@ invController.updateInventory = async function (req, res, next) {
         });
     }
 };
+
+/* ************************************
+ * Build view for new classification
+ * ************************************ */
+async function buildAddClassification(req, res, next) {
+    // This function is defined above as invController.buildAddClassification, 
+    // but the structure here implies it was intended for export/use.
+    // Since the logic is already in invController.buildAddClassification, I will leave this as is.
+}
+
+/* ************************************
+ * Process new classification submission
+ * ************************************ */
+async function registerClassification(req, res) {
+    // This function is defined above as invController.addClassification, 
+    // but the structure here implies it was intended for export/use.
+    // Since the logic is already in invController.addClassification, I will leave this as is.
+    const { classification_name } = req.body;
+
+    // This reference is not used in the final exported controller object, 
+    // but it won't hurt anything. The main logic is in invController.addClassification.
+    // const classResult = await invModelDb.registerClassification(classification_name); 
+    // ... rest of your classification logic
+}
 
 /* ***************************
  * Build Delete Classification View (NEW CODE - GET)

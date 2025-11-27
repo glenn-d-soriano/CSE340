@@ -159,35 +159,37 @@
                                             <!-- Vehicle Fields -->
                                             <label for="inv_make">Make:</label>
                                             <input type="text" id="inv_make" name="inv_make" required
-                                                value="<%= inv_make || '' %>">
+                                                value="<%= typeof inv_make !== 'undefined' ? inv_make : '' %>">
 
                                             <label for="inv_model">Model:</label>
                                             <input type="text" id="inv_model" name="inv_model" required
-                                                value="<%= inv_model || '' %>">
+                                                value="<%= typeof inv_model !== 'undefined' ? inv_model : '' %>">
 
                                             <label for="inv_year">Year:</label>
                                             <input type="number" id="inv_year" name="inv_year" min="1900" max="2100"
-                                                required value="<%= inv_year || '' %>">
+                                                required value="<%= typeof inv_year !== 'undefined' ? inv_year : '' %>">
 
                                             <label for="inv_price">Price:</label>
                                             <input type="number" id="inv_price" name="inv_price" min="0" step="0.01"
-                                                required value="<%= inv_price || '' %>">
+                                                required
+                                                value="<%= typeof inv_price !== 'undefined' ? inv_price : '' %>">
 
                                             <label for="inv_miles">Miles:</label>
                                             <input type="number" id="inv_miles" name="inv_miles" min="0" step="1"
-                                                required value="<%= inv_miles || '' %>">
+                                                required
+                                                value="<%= typeof inv_miles !== 'undefined' ? inv_miles : '' %>">
 
                                             <label for="inv_color">Color:</label>
                                             <input type="text" id="inv_color" name="inv_color" required
-                                                value="<%= inv_color || '' %>">
+                                                value="<%= typeof inv_color !== 'undefined' ? inv_color : '' %>">
 
                                             <label for="inv_image">Image Path:</label>
                                             <input type="text" id="inv_image" name="inv_image"
-                                                value="<%= inv_image || '/images/no-image.png' %>">
+                                                value="<%= typeof inv_image !== 'undefined' ? inv_image : '/images/no-image.png' %>">
 
                                             <label for="inv_thumbnail">Thumbnail Path:</label>
                                             <input type="text" id="inv_thumbnail" name="inv_thumbnail"
-                                                value="<%= inv_thumbnail || '/images/no-image-available.png' %>">
+                                                value="<%= typeof inv_thumbnail !== 'undefined' ? inv_thumbnail : '/images/no-image-available.png' %>">
 
                                             <button type="submit">Add Inventory</button>
                                         </form>

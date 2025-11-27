@@ -52,7 +52,7 @@ async function getInventoryById(inv_id) {
 }
 
 /* ***************************
- * Add new classification (TASK 2 - NEW CODE BLOCK)
+ * Add new classification (TASK 2)
  * ************************** */
 async function addClassification(classification_name) {
     try {
@@ -67,9 +67,12 @@ async function addClassification(classification_name) {
 }
 
 /* ***************************
- * Add new inventory item (TASK 3 - NEW CODE BLOCK)
+ * Add new inventory item (TASK 3) - Adjusted to accept parameters
  * ************************** */
-async function addInventoryItem(item) {
+async function addInventory(
+    inv_make, inv_model, inv_year, inv_description, inv_image, 
+    inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
+) {
     try {
         const sql = `
             INSERT INTO inventory (
@@ -80,29 +83,64 @@ async function addInventoryItem(item) {
             RETURNING *
         `;
         const result = await pool.query(sql, [
-            item.inv_make,
-            item.inv_model,
-            item.inv_year,
-            item.inv_description,
-            item.inv_image,
-            item.inv_thumbnail,
-            item.inv_price,
-            item.inv_miles,
-            item.inv_color,
-            item.classification_id
+            inv_make, 
+            inv_model, 
+            parseInt(inv_year), // Convert to integer
+            inv_description, 
+            inv_image, 
+            inv_thumbnail, 
+            parseFloat(inv_price), // Convert to float/numeric
+            parseInt(inv_miles), // Convert to integer
+            inv_color, 
+            parseInt(classification_id) // Convert to integer
         ]);
         // Returns true if one or more rows were inserted
         return result.rowCount > 0;
     } catch (error) {
-        console.error("addInventoryItem error: " + error);
+        console.error("addInventory error: " + error);
+        // The original error message is thrown here
         throw new Error("Database query failed while adding inventory item.");
     }
 }
 
+/* ***************************
+ * Update Inventory Data (TASK 4 - Placeholder for controller dependency)
+ * ************************** */
+async function updateInventory(
+    inv_id, inv_make, inv_model, inv_description, inv_image, inv_thumbnail, 
+    inv_price, inv_year, inv_miles, inv_color, classification_id
+) {
+    // Implement your UPDATE query here when you're ready for Task 4
+    console.warn("updateInventory model function is a placeholder.");
+    return { inv_make: "Test", inv_model: "Updated" };
+}
+
+/* ***************************
+ * Get Classification By ID (Placeholder for controller dependency)
+ * ************************** */
+async function getClassificationById(classification_id) {
+    // Implement your SELECT query here
+    console.warn("getClassificationById model function is a placeholder.");
+    return { classification_name: "Test" };
+}
+
+/* ***************************
+ * Delete Classification (Placeholder for controller dependency)
+ * ************************** */
+async function deleteClassification(classification_id) {
+    // Implement your DELETE query here
+    console.warn("deleteClassification model function is a placeholder.");
+    return true;
+}
+
+
 module.exports = { 
     getClassifications, 
-    addClassification, // <--- NEWLY EXPORTED
+    addClassification, 
     getInventoryByClassificationId, 
     getInventoryById, 
-    addInventoryItem // <--- NEWLY EXPORTED
+    addInventory, // Renamed and adjusted
+    updateInventory, // Exported for controller dependency
+    getClassificationById, // Exported for controller dependency
+    deleteClassification // Exported for controller dependency
 };
