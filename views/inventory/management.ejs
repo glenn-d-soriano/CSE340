@@ -191,8 +191,9 @@
                                         <!-- Task 4: Inventory Item Management Section -->
 
                                         <h2 class="text-2xl font-semibold mt-8 mb-4">Manage Inventory Items</h2>
-                                        <p class="mb-4">Select a classification to view, edit, or delete inventory
-                                            items.</p>
+                                        <!-- Updated paragraph instruction -->
+                                        <p class="mb-4">Select a classification from the list to see the items belonging
+                                            to that classification.</p>
 
                                         <!-- Classification Select Dropdown (Passed from invController) -->
                                         <div class="form-group mb-4">
@@ -200,11 +201,11 @@
                                             <%- classificationList %>
                                         </div>
 
-                                        <!-- Placeholder for the Inventory Table (Filled by client-side JS in Task 4) -->
-                                        <div id="inventoryDisplay" class="mt-6">
-                                            <p class="text-gray-500">Inventory table will load here after a
-                                                classification is selected above.</p>
-                                        </div>
+                                        <!-- Placeholder for the Inventory Table (Now an empty <table> element) -->
+                                        <table id="inventoryDisplay"></table>
+
+                                        <!-- NoScript element added -->
+                                        <noscript>JavaScript must be enabled to use this page.</noscript>
 
                                         <!-- Task 4: Client-side JavaScript to handle the dropdown selection -->
                                         <script src="/js/inventory.js"></script>

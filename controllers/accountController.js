@@ -156,6 +156,155 @@ async function buildAccountManagement(req, res, next) {
 }
 
 /* ****************************************
+ * Deliver Account Update View (NEW)
+ * *************************************** */
+async function buildAccountUpdateView(req, res, next) {
+  let nav = await utilities.getNav();
+  // We rely on res.locals.accountData which is set by the checkLogin utility
+  const accountData = res.locals.accountData; 
+  const notice = req.flash("notice");
+
+  res.render("account/account-update", {
+    title: "Edit Account",
+    nav,
+    errors: null,
+    notice: notice.length > 0 ? notice : null,
+    account_firstname: accountData.account_firstname,
+    account_lastname: accountData.account_lastname,
+    account_email: accountData.account_email,
+    account_id: accountData.account_id,
+  });
+}
+
+/* ****************************************
+ * Process Account Update (Name/Email) (NEW)
+ * *************************************** */
+async function updateAccount(req, res) {
+  let nav = await utilities.getNav();
+  const { account_firstname, account_lastname, account_email, account_id } = req.body;
+
+  const updateResult = await accountModel.updateAccount(
+    account_firstname,
+    account_lastname,
+    account_email,
+    account_id
+  );
+
+  if (updateResult) {
+    // Successful update
+    req.flash("notice", "Account information successfully updated.");
+
+    // IMPORTANT: Re-issue JWT cookie with updated data 
+    // 1. Get the updated account data
+    const updatedAccountData = await accountModel.getAccountById(account_id);
+    delete updatedAccountData.account_password;
+    
+    // 2. Create a new JWT
+    const accessToken = jwt.sign(
+        updatedAccountData,
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "1h" }
+    );
+    
+    // 3. Set the new cookie
+    const cookieOptions = { httpOnly: true, maxAge: 3600 * 1000 };
+    if (process.env.NODE_ENV !== "development") cookieOptions.secure = true;
+    res.cookie("jwt", accessToken, cookieOptions);
+    
+    // 4. Update res.locals for the next page load
+    res.locals.accountData = updatedAccountData;
+    res.locals.loggedin = 1;
+
+    res.redirect("/account/");
+  } else {
+    // Failed update
+    req.flash("notice", "Sorry, the account update failed.");
+    // Re-fetch the current account data in case validation passed but DB failed
+    const accountData = await accountModel.getAccountById(account_id);
+    
+    // Re-render the update form with sticky data
+    res.status(501).render("account/account-update", {
+        title: "Edit Account",
+        nav,
+        errors: null, // Errors would be handled by checkUpdateData middleware if there were validation errors
+        notice: req.flash("notice"),
+        account_firstname: accountData.account_firstname,
+        account_lastname: accountData.account_lastname,
+        account_email: accountData.account_email,
+        account_id,
+    });
+  }
+}
+
+/* ****************************************
+ * Process Password Change (NEW)
+ * *************************************** */
+async function changePassword(req, res) {
+    let nav = await utilities.getNav();
+    const { current_password, new_password, account_id } = req.body;
+    
+    // 1. Get account data to verify current password
+    const accountData = await accountModel.getAccountById(account_id);
+    
+    // Check if the current password matches the one in the DB
+    if (!(await bcrypt.compare(current_password, accountData.account_password))) {
+        req.flash("notice", "The current password entered is incorrect.");
+        // Re-render the update view with existing data
+        return res.status(400).render("account/account-update", {
+            title: "Edit Account",
+            nav,
+            errors: null,
+            notice: req.flash("notice"),
+            account_firstname: accountData.account_firstname,
+            account_lastname: accountData.account_lastname,
+            account_email: accountData.account_email,
+            account_id,
+        });
+    }
+
+    // 2. Hash the new password
+    let newHashedPassword;
+    try {
+        newHashedPassword = await bcrypt.hash(new_password, 10);
+    } catch (error) {
+        req.flash("notice", "Sorry, there was an error hashing the new password.");
+        res.status(500).render("account/account-update", {
+            title: "Edit Account",
+            nav,
+            errors: null,
+            notice: req.flash("notice"),
+            account_firstname: accountData.account_firstname,
+            account_lastname: accountData.account_lastname,
+            account_email: accountData.account_email,
+            account_id,
+        });
+        return;
+    }
+
+    // 3. Update the password in the database
+    const updateResult = await accountModel.updatePassword(account_id, newHashedPassword);
+
+    if (updateResult) {
+        req.flash("notice", "Password successfully changed. Please log in with your new password.");
+        // Logout the user by clearing the JWT cookie
+        res.clearCookie("jwt");
+        res.redirect("/account/login");
+    } else {
+        req.flash("notice", "Sorry, the password change failed.");
+        res.status(500).render("account/account-update", {
+            title: "Edit Account",
+            nav,
+            errors: null,
+            notice: req.flash("notice"),
+            account_firstname: accountData.account_firstname,
+            account_lastname: accountData.account_lastname,
+            account_email: accountData.account_email,
+            account_id,
+        });
+    }
+}
+
+/* ****************************************
  * Process logout request
  * ************************************ */
 async function accountLogout(req, res) {
@@ -170,5 +319,8 @@ module.exports = {
   registerAccount, 
   accountLogin,
   buildAccountManagement,
+  buildAccountUpdateView, // Added to deliver update view
+  updateAccount,          // Added to process account name/email update
+  changePassword,         // Added to process password change
   accountLogout
 };

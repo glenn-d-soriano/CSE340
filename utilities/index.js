@@ -5,9 +5,8 @@ require("dotenv").config()
 const Util = {}
 
 /* ****************************************
-* Middleware to check token validity (GLOBAL CHECK)
-* This runs on ALL requests to verify the JWT cookie and set res.locals.loggedin.
-* *************************************** */
+ * Check Login
+ * ************************************ */
 Util.checkJWT = (req, res, next) => {
     // FIX: Ensure req.cookies exists before accessing req.cookies.jwt
     if (req.cookies && req.cookies.jwt) {
@@ -169,8 +168,13 @@ Util.buildInventoryDetail = async function (detailData) {
  * *************************************** */
 Util.buildClassificationList = async function (classification_id = null) {
     let data = await invModel.getClassifications()
-    // Start the string with the default option ONLY.
-    let classificationList = "<option value=''>Choose a Classification</option>"
+    
+    // The required fix: wrap the <option> tags in a <select> element
+    // IMPORTANT: It MUST have the ID "classificationList" for the AJAX event listener to work.
+    let classificationList = '<select name="classification_id" id="classificationList" required>'
+
+    // Add the default 'Choose a Classification' option
+    classificationList += "<option value=''>Choose a Classification</option>"
     
     // Data is already an array of classification objects from the model
     data.forEach((row) => {
@@ -183,6 +187,10 @@ Util.buildClassificationList = async function (classification_id = null) {
       }
       classificationList += `>${row.classification_name}</option>`
     })
+
+    // Close the <select> element
+    classificationList += '</select>'
+    
     return classificationList
   }
 

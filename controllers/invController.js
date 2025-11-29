@@ -249,18 +249,18 @@ invController.triggerError = async function (req, res, next) {
 };
 
 /* ***************************
- * Get Inventory Items as JSON (TASK 4 - AJAX)
+ * Return Inventory by Classification As JSON
  * ************************** */
 invController.getInventoryJSON = async (req, res, next) => {
-    const classification_id = parseInt(req.params.classificationId);
-    const invData = await invModelDb.getInventoryByClassificationId(classification_id);
-
-    // Filter out irrelevant columns before sending
-    if (invData[0]?.inv_id) {
-        return res.json(invData);
-    } else {
-        next(new Error("No inventory found"));
-    }
+  // NOTE: Using 'classification_id' here to match the parameter name from the route definition
+  const classification_id = parseInt(req.params.classification_id);
+  const invData = await invModelDb.getInventoryByClassificationId(classification_id);
+  
+  if (invData[0]?.inv_id) {
+    return res.json(invData);
+  } else {
+    next(new Error("No data returned"));
+  }
 };
 
 /* ***************************

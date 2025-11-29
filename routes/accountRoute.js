@@ -28,6 +28,43 @@ router.get("/register", utilities.handleErrors(accountController.buildRegister))
 // Access: /account/logout
 router.get("/logout", utilities.handleErrors(accountController.accountLogout));
 
+
+// **********************************************
+// NEW: Routes for Account Information Update
+// **********************************************
+
+// Route to build the Account Update view (Protected)
+// Access: /account/update
+router.get(
+  "/update", 
+  utilities.checkLogin, 
+  utilities.handleErrors(accountController.buildAccountUpdateView)
+);
+
+// POST route to process the Account Update request
+router.post(
+  "/update",
+  utilities.checkLogin,
+  regValidate.updateAccountRules(),  // Requires implementation in account-validation.js
+  regValidate.checkUpdateData,       // Requires implementation in account-validation.js
+  utilities.handleErrors(accountController.updateAccount)
+);
+
+
+// **********************************************
+// NEW: Route for Password Change
+// **********************************************
+
+// POST route to process the Password Change request
+router.post(
+  "/change-password",
+  utilities.checkLogin,
+  regValidate.changePasswordRules(),  // Requires implementation in account-validation.js
+  regValidate.checkPasswordData,     // Requires implementation in account-validation.js
+  utilities.handleErrors(accountController.changePassword)
+);
+
+
 // POST route to register a new account (with validation + stickiness + controller)
 router.post(
   "/register",

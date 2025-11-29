@@ -6,25 +6,19 @@ const utilities = require("../utilities/");
 const invValidation = require("../utilities/inventory-validation");
 
 // ---------------------------
-// INVENTORY BY CLASSIFICATION
+// INVENTORY MANAGEMENT VIEW
 // ---------------------------
-router.get(
-  "/classification/:classificationId",
-  utilities.handleErrors(invController.buildByClassificationId)
-);
+router.get("/", utilities.handleErrors(invController.buildManagementView));
 
 // ---------------------------
-// VEHICLE DETAIL
+// GET INVENTORY JSON (NEW ROUTE FOR AJAX)
 // ---------------------------
+// Route to return inventory by classification for the management select tool 
+// Access: site-name/inv/getInventory/:classification_id
 router.get(
-  "/detail/:invId",
-  utilities.handleErrors(invController.buildByInvId)
+  "/getInventory/:classification_id",
+  utilities.handleErrors(invController.getInventoryJSON)
 );
-
-// ---------------------------
-// ERROR TEST
-// ---------------------------
-router.get("/error", utilities.handleErrors(invController.triggerError));
 
 // ---------------------------
 // ADD CLASSIFICATION
@@ -57,8 +51,25 @@ router.post(
 );
 
 // ---------------------------
-// INVENTORY MANAGEMENT VIEW
+// INVENTORY BY CLASSIFICATION
 // ---------------------------
-router.get("/", utilities.handleErrors(invController.buildManagementView));
+router.get(
+  "/classification/:classificationId",
+  utilities.handleErrors(invController.buildByClassificationId)
+);
+
+// ---------------------------
+// VEHICLE DETAIL
+// ---------------------------
+router.get(
+  "/detail/:invId",
+  utilities.handleErrors(invController.buildByInvId)
+);
+
+// ---------------------------
+// ERROR TEST
+// ---------------------------
+router.get("/error", utilities.handleErrors(invController.triggerError));
+
 
 module.exports = router;
