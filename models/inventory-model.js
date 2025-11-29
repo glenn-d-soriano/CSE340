@@ -104,33 +104,75 @@ async function addInventory(
 }
 
 /* ***************************
- * Update Inventory Data (TASK 4 - Placeholder for controller dependency)
+ * Update Inventory Data
  * ************************** */
 async function updateInventory(
-    inv_id, inv_make, inv_model, inv_description, inv_image, inv_thumbnail, 
-    inv_price, inv_year, inv_miles, inv_color, classification_id
+    inv_id,
+    inv_make,
+    inv_model,
+    inv_description,
+    inv_image,
+    inv_thumbnail,
+    inv_price,
+    inv_year,
+    inv_miles,
+    inv_color,
+    classification_id
 ) {
-    // Implement your UPDATE query here when you're ready for Task 4
-    console.warn("updateInventory model function is a placeholder.");
-    return { inv_make: "Test", inv_model: "Updated" };
+    try {
+        const sql =
+            "UPDATE public.inventory SET inv_make = $1, inv_model = $2, inv_description = $3, inv_image = $4, inv_thumbnail = $5, inv_price = $6, inv_year = $7, inv_miles = $8, inv_color = $9, classification_id = $10 WHERE inv_id = $11 RETURNING *";
+        
+        const data = await pool.query(sql, [
+            inv_make,
+            inv_model,
+            inv_description,
+            inv_image,
+            inv_thumbnail,
+            parseFloat(inv_price), // <--- Added: Ensure price is numeric
+            parseInt(inv_year),    // <--- Added: Ensure year is integer
+            parseInt(inv_miles),   // <--- Added: Ensure miles is integer
+            inv_color,
+            parseInt(classification_id), // <--- Added: Ensure classification ID is integer
+            parseInt(inv_id) // <--- Added: Ensure inv_id is an integer for the WHERE clause
+        ]);
+        // Return the number of updated rows (should be 1 if successful)
+        return data.rowCount; 
+    } catch (error) {
+        console.error("updateInventory model error: " + error);
+        // Throwing the error here ensures the controller hits the failure block
+        throw new Error("Database query failed while updating inventory data.");
+    }
 }
 
 /* ***************************
- * Get Classification By ID (Placeholder for controller dependency)
+ * Get Classification By ID 
  * ************************** */
 async function getClassificationById(classification_id) {
-    // Implement your SELECT query here
-    console.warn("getClassificationById model function is a placeholder.");
-    return { classification_name: "Test" };
+    try {
+        const data = await pool.query(
+            `SELECT classification_id, classification_name FROM public.classification WHERE classification_id = $1`,
+            [classification_id]
+        );
+        return data.rows[0];
+    } catch (error) {
+        console.error("getClassificationById error: " + error);
+        throw new Error("Database query failed while fetching classification by ID.");
+    }
 }
 
 /* ***************************
- * Delete Classification (Placeholder for controller dependency)
+ * Delete Classification 
  * ************************** */
 async function deleteClassification(classification_id) {
-    // Implement your DELETE query here
-    console.warn("deleteClassification model function is a placeholder.");
-    return true;
+    try {
+        const sql = 'DELETE FROM classification WHERE classification_id = $1';
+        const deleteResult = await pool.query(sql, [classification_id]);
+        return deleteResult.rowCount; // Returns 1 if classification was deleted
+    } catch (error) {
+        console.error("deleteClassification model error: " + error);
+        throw new Error("Database query failed while deleting classification.");
+    }
 }
 
 
@@ -139,8 +181,8 @@ module.exports = {
     addClassification, 
     getInventoryByClassificationId, 
     getInventoryById, 
-    addInventory, // Renamed and adjusted
-    updateInventory, // Exported for controller dependency
-    getClassificationById, // Exported for controller dependency
-    deleteClassification // Exported for controller dependency
+    addInventory, 
+    updateInventory, 
+    getClassificationById, 
+    deleteClassification 
 };

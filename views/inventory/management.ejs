@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -148,6 +149,8 @@
             text-decoration: none;
         }
     </style>
+    
+
 </head>
 
 <body>
@@ -156,19 +159,20 @@
             <h1>
                 <%= title %>
             </h1>
-            <% } else { // This is generally handled by the controller redirecting, but keeps the EJS safe //
-                res.redirect('/') } %>
+            <% } %>
 
-                <!-- Displays flash messages sent from the controller/session (FIXED) -->
-                <% if (messages && Object.keys(messages).length> 0) { %>
+                
+                <!-- FIXED FLASH MESSAGES BLOCK: Shows all notice and error messages -->
+                <% if (messages) { %>
                     <% Object.keys(messages).forEach(type=> { %>
-                        <% messages[type].forEach(message=> { %>
+                        <% messages[type].forEach(msg=> { %>
                             <div class="flash-message <%= type %>">
-                                <%= message %>
+                                <%= msg %>
                             </div>
                             <% }) %>
                                 <% }) %>
                                     <% } %>
+                                        <!-- END FLASH MESSAGES -->
 
                                         <h2 class="text-2xl font-semibold mb-4">Classification Management</h2>
                                         <p class="mb-6">Use the links below to create new classifications and inventory
@@ -208,9 +212,12 @@
                                         <noscript>JavaScript must be enabled to use this page.</noscript>
 
                                         <!-- Task 4: Client-side JavaScript to handle the dropdown selection -->
+                                        <!-- Ensure this file exists at /public/js/inventory.js -->
                                         <script src="/js/inventory.js"></script>
 
     </main>
+    
+
 </body>
 
 </html>

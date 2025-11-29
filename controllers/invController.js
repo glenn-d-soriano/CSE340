@@ -68,6 +68,7 @@ invController.buildByClassificationId = async function (req, res, next) {
  * ************************** */
 invController.buildByInvId = async function (req, res, next) {
   const inv_id = req.params.invId;
+  // NOTE: getInventoryById usually returns an array of one item, we'll rely on the model for the single object.
   const data = await invModelDb.getInventoryById(inv_id);
   
   // ADDED CHECK: If no vehicle found, redirect to prevent crashing
@@ -102,7 +103,7 @@ invController.buildManagementView = async function (req, res) {
     errors: null,
     classificationList, // Pass the classification list to the view
     // *** FIX FOR 10 POINTS: Explicitly pass flash messages ***
-    messages: req.flash(), 
+    
   });
 };
 
@@ -264,30 +265,52 @@ invController.getInventoryJSON = async (req, res, next) => {
 };
 
 /* ***************************
- * Build Edit Inventory View (TASK 4 - GET)
+ * Build edit inventory view
  * ************************** */
-invController.buildEditByInvId = async function (req, res, next) {
-    const inv_id = parseInt(req.params.invId);
+invController.editInventoryView = async function (req, res, next) {
+    // Collect and store the incoming inventory_id as an integer (use the parseInt function)
+    const inv_id = parseInt(req.params.inv_id);
     let nav = await utilities.getNav();
-    const invData = await invModelDb.getInventoryById(inv_id);
     
-    // Check if the data exists
-    if (!invData) {
+    // Call the model-based function to get all the inventory item data
+    // NOTE: getInventoryById usually returns an array of one item.
+    const data = await invModelDb.getInventoryById(inv_id);
+    // FIX: The model may return a single object or an array of one object. 
+    // We should safely get the object, assuming it's the first element if it's an array.
+    const itemData = Array.isArray(data) ? data[0] : data; 
+    
+    // Check if item was found
+    if (!itemData) {
         req.flash("error", "Inventory item not found.");
         return res.redirect("/inv");
     }
 
-    const classificationList = await utilities.buildClassificationList(invData.classification_id);
-    const itemName = `${invData.inv_make} ${invData.inv_model}`;
+    // Build classification select list, setting the item's classification_id as selected
+    // FIX: Renaming the built list variable to "classifications" to match expected EJS variable name
+    const classifications = await utilities.buildClassificationList(itemData.classification_id);
+    
+    // Create the item name for the title and h1 elements
+    const itemName = `${itemData.inv_make} ${itemData.inv_model}`;
 
+    // Render the view, passing all required unpacked data
     res.render("inventory/edit-inventory", {
         title: "Edit " + itemName,
         nav,
-        classificationList: classificationList,
+        classifications: classifications, // Passing the list with the name expected by EJS
         errors: null,
-        invData, // Pass the existing data to pre-fill the form
-        // *** FIX FOR 10 POINTS: Explicitly pass flash messages ***
-        messages: req.flash(), 
+        // Add variables holding the item's information to the data object
+        inv_id: itemData.inv_id,
+        inv_make: itemData.inv_make,
+        inv_model: itemData.inv_model,
+        inv_year: itemData.inv_year,
+        inv_description: itemData.inv_description,
+        inv_image: itemData.inv_image,
+        inv_thumbnail: itemData.inv_thumbnail,
+        inv_price: itemData.inv_price,
+        inv_miles: itemData.inv_miles,
+        inv_color: itemData.inv_color,
+        classification_id: itemData.classification_id,
+        messages: req.flash(),
     });
 };
 
@@ -295,89 +318,125 @@ invController.buildEditByInvId = async function (req, res, next) {
  * Process Update Inventory (TASK 4 - POST)
  * ************************** */
 invController.updateInventory = async function (req, res, next) {
-    let nav = await utilities.getNav();
-    const { 
-        inv_id, classification_id, inv_make, inv_model, inv_year, 
-        inv_description, inv_image, inv_thumbnail, inv_price, 
-        inv_miles, inv_color 
+    console.log("--- START INVENTORY UPDATE DEBUG ---");
+
+    const {
+        inv_id,
+        inv_make,
+        inv_model,
+        inv_description,
+        inv_image,
+        inv_thumbnail,
+        inv_price,
+        inv_year,
+        inv_miles,
+        inv_color,
+        classification_id,
     } = req.body;
-    
+
+    // Convert numeric fields before sending to DB
+    const invPriceNum = parseFloat(inv_price);
+    const invYearNum = parseInt(inv_year);
+    const invMilesNum = parseInt(inv_miles);
+    const classificationIdNum = parseInt(classification_id);
+    const invIdNum = parseInt(inv_id);
+
+    console.log("Incoming Data Types:", {
+        invPriceNum: typeof invPriceNum,
+        invYearNum: typeof invYearNum,
+        invMilesNum: typeof invMilesNum,
+        classificationIdNum: typeof classificationIdNum,
+    });
+
+    let nav = await utilities.getNav();
+    const classifications = await utilities.buildClassificationList(classificationIdNum);
+
+    // Check for validation errors
     const errors = validationResult(req);
-    const classificationList = await utilities.buildClassificationList(classification_id);
-    
-    // If validation fails, re-render the edit form with errors and sticky data
     if (!errors.isEmpty()) {
-        const itemName = `${inv_make} ${inv_model}`;
+        console.log("Validation Failed. Errors:", errors.array());
+        console.log("--- END INVENTORY UPDATE DEBUG (Validation Failed) ---");
+
         return res.render("inventory/edit-inventory", {
             errors: errors.array(),
-            title: "Edit " + itemName,
+            title: `Edit ${inv_make} ${inv_model}`,
             nav,
-            classificationList,
-            invData: {
-                inv_id, classification_id, inv_make, inv_model, inv_year, 
-                inv_description, inv_image, inv_thumbnail, inv_price, 
-                inv_miles, inv_color
-            }, // Repopulate the form with submitted data
-            // *** FIX FOR 10 POINTS: Explicitly pass flash messages ***
-            messages: req.flash(), 
+            classifications,
+            inv_id: invIdNum,
+            inv_make,
+            inv_model,
+            inv_year: invYearNum,
+            inv_description,
+            inv_image,
+            inv_thumbnail,
+            inv_price: invPriceNum,
+            inv_miles: invMilesNum,
+            inv_color,
+            classification_id: classificationIdNum,
+            messages: req.flash(),
         });
     }
 
-    // Attempt to update data
+    // Attempt to update inventory in DB
     const updateResult = await invModelDb.updateInventory(
-        inv_id, inv_make, inv_model, inv_description, inv_image, inv_thumbnail, 
-        inv_price, inv_year, inv_miles, inv_color, classification_id
+        invIdNum,
+        inv_make,
+        inv_model,
+        inv_description,
+        inv_image,
+        inv_thumbnail,
+        invPriceNum,
+        invYearNum,
+        invMilesNum,
+        inv_color,
+        classificationIdNum
     );
 
-    if (updateResult) {
-        const itemName = updateResult.inv_make + " " + updateResult.inv_model;
-        req.flash("notice", `The ${itemName} was successfully updated.`);
-        // Success: Redirect to the management view
+    console.log("Model Update Result:", updateResult);
+
+    if (updateResult > 0) {
+        // Set flash message for success
+        req.flash("notice", `The ${inv_make} ${inv_model} was successfully updated.`);
+        console.log(`SUCCESS: Redirecting to /inv`);
+    
+        // Redirect to the Inventory Management page instead of staying on the edit page
         return res.redirect("/inv");
     } else {
-        // Failure (Database error)
+        // Failure case remains the same
         req.flash("error", "Sorry, the update failed. Please try again.");
-        // Render the form again with the error message
-        const itemName = `${inv_make} ${inv_model}`;
+        console.log("FAILURE: Update returned 0 or false.");
         return res.render("inventory/edit-inventory", {
             errors: null,
-            title: "Edit " + itemName,
+            title: `Edit ${inv_make} ${inv_model}`,
             nav,
-            classificationList,
-            invData: {
-                inv_id, classification_id, inv_make, inv_model, inv_year, 
-                inv_description, inv_image, inv_thumbnail, inv_price, 
-                inv_miles, inv_color
-            },
-            // *** FIX FOR 10 POINTS: Explicitly pass flash messages ***
-            messages: req.flash(), 
+            classifications,
+            inv_id: invIdNum,
+            inv_make,
+            inv_model,
+            inv_year: invYearNum,
+            inv_description,
+            inv_image,
+            inv_thumbnail,
+            inv_price: invPriceNum,
+            inv_miles: invMilesNum,
+            inv_color,
+            classification_id: classificationIdNum,
+            messages: req.flash(),
         });
     }
+
 };
+
 
 /* ************************************
  * Build view for new classification
  * ************************************ */
-async function buildAddClassification(req, res, next) {
-    // This function is defined above as invController.buildAddClassification, 
-    // but the structure here implies it was intended for export/use.
-    // Since the logic is already in invController.buildAddClassification, I will leave this as is.
-}
+// Function defined in invController.buildAddClassification above
 
 /* ************************************
  * Process new classification submission
  * ************************************ */
-async function registerClassification(req, res) {
-    // This function is defined above as invController.addClassification, 
-    // but the structure here implies it was intended for export/use.
-    // Since the logic is already in invController.addClassification, I will leave this as is.
-    const { classification_name } = req.body;
-
-    // This reference is not used in the final exported controller object, 
-    // but it won't hurt anything. The main logic is in invController.addClassification.
-    // const classResult = await invModelDb.registerClassification(classification_name); 
-    // ... rest of your classification logic
-}
+// Function defined in invController.addClassification above
 
 /* ***************************
  * Build Delete Classification View (NEW CODE - GET)

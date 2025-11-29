@@ -21,6 +21,32 @@ router.get(
 );
 
 // ---------------------------
+// EDIT INVENTORY ITEM (STEP 1: GET)
+// ---------------------------
+// Route to build the edit inventory view
+// Access: site-name/inv/edit/:inv_id
+router.get(
+  "/edit/:inv_id",
+  // FIX: Changed to match the function name in invController.js
+  utilities.handleErrors(invController.editInventoryView) 
+);
+
+// ---------------------------
+// UPDATE INVENTORY ITEM (STEP 2: POST)
+// ---------------------------
+// Route to process the inventory update form submission
+// Access: site-name/inv/update
+router.post(
+  "/update",
+  // Reuse inventory validation rules
+  invValidation.inventoryRules(), 
+  // You should have a separate check function for update to handle the redirect path differently
+  invValidation.checkUpdateData,
+  utilities.handleErrors(invController.updateInventory) 
+);
+
+
+// ---------------------------
 // ADD CLASSIFICATION
 // ---------------------------
 router.get(
@@ -44,10 +70,15 @@ router.get(
 );
 
 router.post(
-  "/add-inventory",
-  invValidation.inventoryRules(),
-  invValidation.checkInventoryData,
-  utilities.handleErrors(invController.addInventory)
+  "/update",
+  invValidation.inventoryRules(), 
+  invValidation.checkUpdateData,
+  (req, res, next) => {
+    console.log("Update POST received!");
+    console.log(req.body); // Check the form data
+    next(); // Pass to your controller
+  },
+  utilities.handleErrors(invController.updateInventory)
 );
 
 // ---------------------------

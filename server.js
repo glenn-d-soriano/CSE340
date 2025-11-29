@@ -14,20 +14,20 @@ const utilities = require("./utilities/");
 
 // Route imports
 const staticRoute = require("./routes/static");
-// We don't need to import baseController here anymore as baseRoute handles it
 const inventoryRoute = require("./routes/inventoryRoute");
-const accountRoute = require("./routes/accountRoute"); // Account routes
-const baseRoute = require("./routes/baseRoute"); // <-- Ensure this is imported
+const accountRoute = require("./routes/accountRoute");
+const baseRoute = require("./routes/baseRoute");
 
 const app = express();
 const cookieParser = require("cookie-parser");
+const flash = require("connect-flash");
 
 
 /* ***********************
  * Middleware
  ************************/
 
-// Session Middleware (Must be first)
+// Session Middleware (must be first)
 app.use(
   session({
     store: new (require("connect-pg-simple")(session))({
@@ -35,38 +35,36 @@ app.use(
       pool,
     }),
     secret: process.env.SESSION_SECRET,
-    resave: true,
+    resave: false,
     saveUninitialized: true,
     name: "sessionId",
   })
 );
 
-// Express Messages Middleware (after session)
-app.use(require("connect-flash")());
-app.use(function (req, res, next) {
-  res.locals.messages = req.flash(); // make req.flash() available globally
+// Cookie Parser (before flash and JWT)
+app.use(cookieParser());
+
+// Flash Middleware
+app.use(flash());
+
+// Make flash messages available in all EJS views
+app.use((req, res, next) => {
+  res.locals.messages = req.flash(); // attach messages to all views
   next();
 });
 
-// Body parser middleware (for JSON and form data)
+// Body parser middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Static files and layouts middleware (before routes)
+// Static files and layouts middleware
 app.use(express.static("public"));
 app.use(expressLayouts);
 
-// Cookie Parser Middleware (MUST BE BEFORE checkJWT)
-app.use(cookieParser());
-
 /* ***********************
  * Universal JWT Check Middleware
- * Applied to ALL requests to check the cookie and set res.locals.loggedin.
- * MUST be after cookieParser.
- * ************************/
-app.use(utilities.checkJWT); // <-- CORRECT UNIVERSAL MIDDLEWARE APPLIED
-
-// Removed: app.use(utilities.checkLogin) as it is used only for protected routes.
+ ************************/
+app.use(utilities.checkJWT); // applied to all requests
 
 
 /* ***********************
@@ -76,48 +74,41 @@ app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
 app.set("layout", "./layouts/layout");
 
+
 /* ***********************
  * Locals & General Variables
- * ************************/
-// Set up global res.locals.nav variable for the navigation bar
-// This must run before all route handlers
+ ************************/
+// Global navigation variable
 app.use(async (req, res, next) => {
   res.locals.nav = await utilities.getNav();
   next();
 });
 
+
 /* ***********************
  * Routes
  ************************/
-// Default/Home Route - MUST BE LOADED FIRST
-app.use("/", baseRoute); // <-- Use modular route file for the root path
+app.use("/", baseRoute);        // Home/default route
+app.use("/inv", inventoryRoute); 
+app.use("/account", accountRoute);
+app.use(staticRoute);           // Static routes
 
-// Inventory and Account Routes
-app.use("/inv", inventoryRoute);
-app.use("/account", accountRoute); // Account routes
-
-// Static route (keep near the end)
-app.use(staticRoute); 
-
-
-// 404 Route - must be last route before error handler
+// 404 Route (must be last before error handler)
 app.use(async (req, res, next) => {
   next({
     status: 404,
-    message:
-      "Sorry, we appear to have lost that page. Maybe it was abducted by space squirrels.",
+    message: "Sorry, we appear to have lost that page. Maybe it was abducted by space squirrels.",
   });
 });
 
+
 /* ***********************
  * Express Error Handler
- * Place after all other middleware
  ************************/
 app.use(async (err, req, res, next) => {
   let nav = await utilities.getNav();
 
-  // Log the detailed error to the console for internal use
-  console.error(`Error at: "${req.originalUrl}": ${err.message}`);
+  console.error(`Error at "${req.originalUrl}": ${err.message}`);
 
   const message =
     err.status === 404
@@ -130,6 +121,7 @@ app.use(async (err, req, res, next) => {
     nav,
   });
 });
+
 
 /* ***********************
  * Server Configuration
