@@ -1,0 +1,187 @@
+<% let pageTitle="Delete Inventory Item" ; if (locals && locals.title) { pageTitle=locals.title; } else if (locals &&
+    locals.inv_make && locals.inv_model) { pageTitle="Delete " + locals.inv_make + " " + locals.inv_model; } %>
+
+    <style>
+        /* Global Styling for the View */
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        /* Notice/Error List Styling */
+        .notice {
+            list-style: none;
+            padding: 1rem;
+            margin: 1rem auto;
+            border-radius: 8px;
+            max-width: 700px;
+            text-align: left;
+            background-color: #ffebeb;
+            /* Light red/pink for errors */
+            border: 1px solid #ff4444;
+            color: #d8000c;
+            /* Dark red text */
+        }
+
+        .notice li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Form Container Styling */
+        .form-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 2.5rem;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-container h2 {
+            text-align: center;
+            color: #dc3545;
+            /* Changed to red for Delete Confirmation */
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            border-bottom: 2px solid #dc3545;
+            /* Changed border color */
+            padding-bottom: 0.5rem;
+        }
+
+        /* Form Group (Label + Input) Styling */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        /* Input, Textarea, and Select Field Styling - Corrected quotes */
+        .form-container input[type="text"],
+        .form-container input[type="number"],
+        .form-container textarea,
+        .form-container select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            /* Ensures padding doesn&#39;t affect total width */
+            font-size: 1rem;
+            /* Added specific style for readonly fields for visual distinction */
+            background-color: #f7f7f7;
+        }
+
+        /* Primary Button Styling - Changed to red for Delete */
+        .button-primary {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-top: 2rem;
+            background-color: #dc3545;
+            /* Red for delete */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s;
+        }
+
+        .button-primary:hover {
+            background-color: #c82333;
+        }
+
+        .button-primary:active {
+            transform: scale(0.99);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+        }
+    </style>
+
+    <h1>
+        <%= pageTitle %>
+    </h1>
+
+    <% if (locals.messages && locals.messages.length> 0) { %>
+        <ul class="notice">
+            <% locals.messages.forEach(message=> { %>
+                <li>
+                    <%= message %>
+                </li>
+                <% }) %>
+        </ul>
+        <% } %>
+
+            <% if (locals.errors && locals.errors.length> 0) { %>
+                <ul class="notice">
+                    <% locals.errors.forEach(error=> { %>
+                        <li>
+                            <%= error.msg %>
+                        </li>
+                        <% }) %>
+                </ul>
+                <% } %>
+
+                    <div class="form-container">
+                        <h2>Delete Vehicle Confirmation</h2>
+
+                        <!-- Confirmation message as requested -->
+                        <p class="notice"
+                            style="background-color: #fff3cd; border-color: #ffeeba; color: #856404; text-align: center;">
+                            <span style="font-weight: 700;">CAUTION:</span> Confirm this is the correct inventory item
+                            to be deleted. The delete is permanent.
+                        </p>
+
+                        <!-- Form action set to the POST delete route -->
+                        <form id="deleteForm" action="/inv/delete/" method="post">
+
+                            <!-- Make (Readonly, kept) -->
+                            <div class="form-group">
+                                <label for="invMake">Make:</label>
+                                <input type="text" id="invMake" name="inv_make" required readonly
+                                    value="<%= locals.inv_make || '' %>">
+                            </div>
+
+                            <!-- Model (Readonly, kept) -->
+                            <div class="form-group">
+                                <label for="invModel">Model:</label>
+                                <input type="text" id="invModel" name="inv_model" required readonly
+                                    value="<%= locals.inv_model || '' %>">
+                            </div>
+
+                            <!-- Year (Readonly, kept) -->
+                            <div class="form-group">
+                                <label for="invYear">Year:</label>
+                                <input type="number" id="invYear" name="inv_year" required readonly
+                                    value="<%= locals.inv_year || '' %>">
+                            </div>
+
+                            <!-- Price (Readonly, kept) -->
+                            <div class="form-group">
+                                <label for="invPrice">Price:</label>
+                                <input type="number" id="invPrice" name="inv_price" required readonly
+                                    value="<%= locals.inv_price || '' %>">
+                            </div>
+
+                            <!-- inv_id Hidden Input (Required for delete operation) -->
+                            <input type="hidden" name="inv_id" value="<%= locals.inv_id || '' %>">
+
+                            <!-- Submit button text changed to Delete -->
+                            <button id="deleteBtn" type="submit" class="button-primary">Delete Vehicle</button>
+                        </form>
+                    </div>

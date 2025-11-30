@@ -32,8 +32,19 @@ async function getInventoryByClassificationId(classification_id) {
 
 /* ***************************
  * Get inventory item by inv_id
+ * FIX APPLIED HERE
  * ************************** */
 async function getInventoryById(inv_id) {
+    // 1. Convert to a safe integer value.
+    const safe_inv_id = parseInt(inv_id); 
+    
+    // 2. Safeguard: Check if the result is NaN or zero/negative (invalid ID).
+    if (isNaN(safe_inv_id) || safe_inv_id <= 0) {
+        console.error(`Attempted call to getInventoryById with invalid ID: ${inv_id}`);
+        // Throw an error that the controller can catch cleanly and redirect, preventing the DB call.
+        throw new Error(`Invalid inventory ID provided: ${inv_id}`); 
+    }
+    
     try {
         const data = await pool.query(
             `SELECT 
@@ -41,13 +52,14 @@ async function getInventoryById(inv_id) {
                 inv_thumbnail, inv_price, inv_miles, inv_color, classification_id
              FROM public.inventory
              WHERE inv_id = $1`,
-            [inv_id]
+            [safe_inv_id] // Use the guaranteed safe integer
         );
         // Returns single vehicle object
         return data.rows[0]; 
     } catch (error) {
         console.error("getInventoryById error: " + error);
-        throw new Error("Database query failed while fetching single inventory item.");
+        // Re-throw the original error message with context
+        throw new Error("Database query failed while fetching single inventory item: " + error.message);
     }
 }
 
@@ -175,6 +187,23 @@ async function deleteClassification(classification_id) {
     }
 }
 
+/* ***************************
+ * Delete Inventory Item (STEP 2 MODEL FUNCTION)
+ * ************************** */
+async function deleteInventoryItem(inv_id) {
+    try {
+        // The SQL query to delete the row based on inventory ID
+        const sql = 'DELETE FROM inventory WHERE inv_id = $1';
+        // Execute the query, passing the inv_id as a parameter
+        const data = await pool.query(sql, [inv_id]); 
+        // A successful delete will store 1 into data.rowCount, 0 otherwise.
+        return data.rowCount; 
+    } catch (error) {
+        console.error("Delete Inventory Error:", error);
+        throw new Error("Delete Inventory Error: " + error.message);
+    }
+}
+
 
 module.exports = { 
     getClassifications, 
@@ -184,5 +213,6 @@ module.exports = {
     addInventory, 
     updateInventory, 
     getClassificationById, 
-    deleteClassification 
+    deleteClassification,
+    deleteInventoryItem 
 };

@@ -74,8 +74,8 @@ Util.getNav = async function () {
 }
 
 /* ****************************************
-* Build the classification view grid
-* *************************************** */
+ * Build the classification view grid
+ * *************************************** */
 Util.buildClassificationGrid = async function (data) {
     let grid
     if (data.length > 0) {
@@ -103,8 +103,8 @@ Util.buildClassificationGrid = async function (data) {
 }
 
 /* ****************************************
-* Build the HTML for the vehicle detail view
-* *************************************** */
+ * Build the HTML for the vehicle detail view
+ * *************************************** */
 Util.buildInventoryDetail = async function (detailData) {
     // detailData is expected to be a single object from invModel.getInventoryById
     const vehicle = Array.isArray(detailData) ? detailData[0] : detailData;
@@ -164,19 +164,17 @@ Util.buildInventoryDetail = async function (detailData) {
 }
 
 /* ****************************************
- * Build the classification select list
+ * Build the full classification select list (Used for Inventory Management)
+ * This includes the <select> wrapper tags.
  * *************************************** */
 Util.buildClassificationList = async function (classification_id = null) {
     let data = await invModel.getClassifications()
     
-    // The required fix: wrap the <option> tags in a <select> element
-    // IMPORTANT: It MUST have the ID "classificationList" for the AJAX event listener to work.
-    let classificationList = '<select name="classification_id" id="classificationList" required>'
-
-    // Add the default 'Choose a Classification' option
+    // Includes the select wrapper tags, necessary for pages like Inventory Management
+    let classificationList = '<select name="classification_id" id="classificationList" required>'; 
     classificationList += "<option value=''>Choose a Classification</option>"
     
-    // Data is already an array of classification objects from the model
+    // Loop to build options
     data.forEach((row) => {
       classificationList += `<option value="${row.classification_id}"`
       if (
@@ -188,17 +186,40 @@ Util.buildClassificationList = async function (classification_id = null) {
       classificationList += `>${row.classification_name}</option>`
     })
 
-    // Close the <select> element
     classificationList += '</select>'
     
     return classificationList
   }
 
+/* ****************************************
+ * Build classification options only (Used for Add/Edit Forms)
+ * This ONLY returns the <option> tags, assumes the EJS template has the <select> wrapper.
+ * *************************************** */
+Util.buildClassificationOptions = async function (classification_id = null) {
+    let data = await invModel.getClassifications()
+    
+    // Only includes options, assumes the EJS template provides the <select> tag.
+    let classificationOptions = "<option value=''>Choose a Classification</option>"
+    
+    // Loop to build options
+    data.forEach((row) => {
+      classificationOptions += `<option value="${row.classification_id}"`
+      if (
+        classification_id != null &&
+        Number(row.classification_id) === Number(classification_id)
+      ) {
+        classificationOptions += " selected "
+      }
+      classificationOptions += `>${row.classification_name}</option>`
+    })
+    
+    return classificationOptions
+  }
 
 /* ****************************************
-* Middleware to handle errors
-* Wrap an async function in this middleware to catch errors
-* *************************************** */
+ * Middleware to handle errors
+ * Wrap an async function in this middleware to catch errors
+ * *************************************** */
 Util.handleErrors = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
 
 

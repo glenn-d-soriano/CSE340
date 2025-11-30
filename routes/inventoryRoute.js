@@ -69,17 +69,20 @@ router.get(
   utilities.handleErrors(invController.buildAddInventory)
 );
 
+// ***** FIX START: THIS WAS THE MISSING ROUTE *****
+// Route to process the inventory add form submission
 router.post(
-  "/update",
+  "/add-inventory",
   invValidation.inventoryRules(), 
-  invValidation.checkUpdateData,
-  (req, res, next) => {
-    console.log("Update POST received!");
-    console.log(req.body); // Check the form data
-    next(); // Pass to your controller
-  },
-  utilities.handleErrors(invController.updateInventory)
+  invValidation.checkInventoryData,
+  utilities.handleErrors(invController.addInventory) // Assuming your controller function is named addInventory
 );
+// ***** FIX END *****
+
+/* NOTE: The duplicate POST /update route previously here has been removed.
+  It was causing confusion and was not the correct handler for /add-inventory.
+*/
+
 
 // ---------------------------
 // INVENTORY BY CLASSIFICATION
@@ -102,5 +105,19 @@ router.get(
 // ---------------------------
 router.get("/error", utilities.handleErrors(invController.triggerError));
 
+// New Task: Route to deliver the delete confirmation view
+// Path: /inv/delete/:inv_id (Matches the Delete link structure)
+router.get("/delete/:inv_id", 
+  utilities.checkLogin, 
+  utilities.handleErrors(invController.buildDeleteConfirmation)
+);
+
+// New Task: Route to handle the actual item deletion
+// The route will call the function 'deleteInventory' which we will build next.
+router.post(
+  "/delete/", 
+  utilities.checkLogin, 
+  utilities.handleErrors(invController.deleteInventory)
+);
 
 module.exports = router;

@@ -67,6 +67,7 @@ invController.buildByClassificationId = async function (req, res, next) {
  * Build single inventory item detail view
  * ************************** */
 invController.buildByInvId = async function (req, res, next) {
+  // Uses invId, which matches the route /detail/:invId
   const inv_id = req.params.invId;
   // NOTE: getInventoryById usually returns an array of one item, we'll rely on the model for the single object.
   const data = await invModelDb.getInventoryById(inv_id);
@@ -95,16 +96,18 @@ invController.buildByInvId = async function (req, res, next) {
  * ************************** */
 invController.buildManagementView = async function (req, res) {
   let nav = await utilities.getNav();
-  const classificationList = await utilities.buildClassificationList();
+    // CORRECT CALL: This needs the full <select> element for the management page
+    const classificationList = await utilities.buildClassificationList();
+    
+  console.log("Flash messages (res.locals):", res.locals.messages); 
   
   res.render("inventory/management", {
-    title: "Inventory Management",
-    nav,
-    errors: null,
-    classificationList, // Pass the classification list to the view
-    // *** FIX FOR 10 POINTS: Explicitly pass flash messages ***
-    
-  });
+  title: "Inventory Management",
+  nav,
+  errors: null,
+  classificationList,
+  messages: res.locals.messages, // already set by middleware
+});
 };
 
 /* ***************************
@@ -170,7 +173,8 @@ invController.addClassification = async function (req, res) {
  * ************************** */
 invController.buildAddInventory = async function (req, res) {
   let nav = await utilities.getNav();
-  const classificationList = await utilities.buildClassificationList();
+  // FIX APPLIED: Use buildClassificationOptions (only <option> tags)
+  const classificationList = await utilities.buildClassificationOptions(); 
   res.render("inventory/add-inventory", {
     title: "Add New Inventory Item",
     nav,
@@ -196,7 +200,8 @@ invController.addInventory = async function (req, res) {
     const final_description = inv_description || `A quality vehicle: ${inv_make} ${inv_model}.`;
 
     const errors = validationResult(req);
-    const classificationList = await utilities.buildClassificationList(classification_id);
+    // FIX APPLIED: Use buildClassificationOptions for sticky data in case of error
+    const classificationList = await utilities.buildClassificationOptions(classification_id);
 
     // If validation fails, re-render the form with errors and sticky data
     if (!errors.isEmpty()) {
@@ -268,15 +273,19 @@ invController.getInventoryJSON = async (req, res, next) => {
  * Build edit inventory view
  * ************************** */
 invController.editInventoryView = async function (req, res, next) {
-    // Collect and store the incoming inventory_id as an integer (use the parseInt function)
-    const inv_id = parseInt(req.params.inv_id);
+    // FIX: Using req.params.inv_id to match the route definition /edit/:inv_id
+    const inv_id = parseInt(req.params.inv_id); 
     let nav = await utilities.getNav();
     
+    // Check if the ID is NaN before proceeding to the database
+    if (isNaN(inv_id)) {
+        req.flash("error", "Invalid inventory ID provided in the URL.");
+        return res.redirect("/inv");
+    }
+
     // Call the model-based function to get all the inventory item data
     // NOTE: getInventoryById usually returns an array of one item.
     const data = await invModelDb.getInventoryById(inv_id);
-    // FIX: The model may return a single object or an array of one object. 
-    // We should safely get the object, assuming it's the first element if it's an array.
     const itemData = Array.isArray(data) ? data[0] : data; 
     
     // Check if item was found
@@ -285,9 +294,8 @@ invController.editInventoryView = async function (req, res, next) {
         return res.redirect("/inv");
     }
 
-    // Build classification select list, setting the item's classification_id as selected
-    // FIX: Renaming the built list variable to "classifications" to match expected EJS variable name
-    const classifications = await utilities.buildClassificationList(itemData.classification_id);
+    // CORRECT CALL: This needs the full <select> element for the management page
+    const classificationList = await utilities.buildClassificationList(itemData.classification_id);
     
     // Create the item name for the title and h1 elements
     const itemName = `${itemData.inv_make} ${itemData.inv_model}`;
@@ -296,9 +304,12 @@ invController.editInventoryView = async function (req, res, next) {
     res.render("inventory/edit-inventory", {
         title: "Edit " + itemName,
         nav,
-        classifications: classifications, // Passing the list with the name expected by EJS
+        // FIX: Passing the full inventory object for cleaner access in EJS
+        inventory: itemData,
+        // FIX: Passing the list with the name expected by EJS
+        classificationList: classificationList, 
         errors: null,
-        // Add variables holding the item's information to the data object
+        // The following individual locals are still passed to handle sticky data from validation errors:
         inv_id: itemData.inv_id,
         inv_make: itemData.inv_make,
         inv_model: itemData.inv_model,
@@ -310,7 +321,7 @@ invController.editInventoryView = async function (req, res, next) {
         inv_miles: itemData.inv_miles,
         inv_color: itemData.inv_color,
         classification_id: itemData.classification_id,
-        messages: req.flash(),
+        
     });
 };
 
@@ -349,7 +360,8 @@ invController.updateInventory = async function (req, res, next) {
     });
 
     let nav = await utilities.getNav();
-    const classifications = await utilities.buildClassificationList(classificationIdNum);
+    // CORRECT CALL: This needs the full <select> element for the management page
+    const classificationList = await utilities.buildClassificationList(classificationIdNum);
 
     // Check for validation errors
     const errors = validationResult(req);
@@ -357,11 +369,16 @@ invController.updateInventory = async function (req, res, next) {
         console.log("Validation Failed. Errors:", errors.array());
         console.log("--- END INVENTORY UPDATE DEBUG (Validation Failed) ---");
 
+        // Fetching itemData to pass as 'inventory' for sticky data when validation fails
+        const data = await invModelDb.getInventoryById(invIdNum);
+        const itemData = Array.isArray(data) ? data[0] : data; 
+
         return res.render("inventory/edit-inventory", {
             errors: errors.array(),
             title: `Edit ${inv_make} ${inv_model}`,
             nav,
-            classifications,
+            classificationList,
+            inventory: itemData, // Pass the inventory object for clean EJS logic
             inv_id: invIdNum,
             inv_make,
             inv_model,
@@ -405,11 +422,17 @@ invController.updateInventory = async function (req, res, next) {
         // Failure case remains the same
         req.flash("error", "Sorry, the update failed. Please try again.");
         console.log("FAILURE: Update returned 0 or false.");
+
+        // Fetching itemData to pass as 'inventory' for sticky data when validation fails
+        const data = await invModelDb.getInventoryById(invIdNum);
+        const itemData = Array.isArray(data) ? data[0] : data; 
+
         return res.render("inventory/edit-inventory", {
             errors: null,
             title: `Edit ${inv_make} ${inv_model}`,
             nav,
-            classifications,
+            classificationList,
+            inventory: itemData, // Pass the inventory object for clean EJS logic
             inv_id: invIdNum,
             inv_make,
             inv_model,
@@ -427,16 +450,68 @@ invController.updateInventory = async function (req, res, next) {
 
 };
 
+/* ****************************************
+ * Build delete confirmation view (STEP 1 - GET)
+ * *************************************** */
+invController.buildDeleteConfirmation = async function (req, res, next) {
+    // FIX: Using req.params.inv_id to match the route definition /delete/:inv_id
+    const inv_id = parseInt(req.params.inv_id)
+    let nav = await utilities.getNav()
+    
+    // Get the data for the inventory item from the database.
+    // NOTE: getInventoryById usually returns an array of one item.
+    const data = await invModelDb.getInventoryById(inv_id)
+    const itemData = Array.isArray(data) ? data[0] : data;
 
-/* ************************************
- * Build view for new classification
- * ************************************ */
-// Function defined in invController.buildAddClassification above
+    // Check if item data was found
+    if (!itemData) {
+        req.flash("notice", "Sorry, no data was found for that inventory item.")
+        return res.redirect("/inv/")
+    }
 
-/* ************************************
- * Process new classification submission
- * ************************************ */
-// Function defined in invController.addClassification above
+    // Build a name variable to hold the inventory item's make and model.
+    const itemName = `${itemData.inv_make} ${itemData.inv_model}`
+
+    // Call the res.render function to deliver the delete confirmation view.
+    res.render("./inventory/delete-confirm", {
+        title: "Delete " + itemName,
+        nav,
+        errors: null,
+        // Data for the readonly form fields
+        inv_id: itemData.inv_id,
+        inv_make: itemData.inv_make,
+        inv_model: itemData.inv_model,
+        inv_year: itemData.inv_year,
+        inv_price: itemData.inv_price,
+        messages: req.flash(),
+    })
+}
+
+
+/* ****************************************
+* Process delete inventory (STEP 2 - POST)
+* *************************************** */
+invController.deleteInventory = async function (req, res) {
+    // We only need inv_id, inv_make, and inv_model from the body for the success/failure logic
+    const { inv_id, inv_make, inv_model } = req.body;
+    const invIdNum = parseInt(inv_id); // Required to be an integer
+
+    // Pass the inv_id to the model function to perform the delete operation.
+    const deleteResult = await invModelDb.deleteInventoryItem(invIdNum);
+
+    if (deleteResult) {
+        // SUCCESS: Flash message and redirect to the management view.
+        req.flash("notice", `The ${inv_make} ${inv_model} was successfully deleted.`);
+        res.redirect("/inv/");
+    } else {
+        // FAILURE: Flash message and REDIRECT to the GET route to rebuild the delete view.
+        req.flash("error", "Sorry, the deletion failed. Please try again.");
+        
+        // Redirects to the /inv/delete/:inv_id route
+        res.redirect(`/inv/delete/${invIdNum}`);
+    }
+}
+
 
 /* ***************************
  * Build Delete Classification View (NEW CODE - GET)

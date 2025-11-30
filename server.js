@@ -49,7 +49,8 @@ app.use(flash());
 
 // Make flash messages available in all EJS views
 app.use((req, res, next) => {
-  res.locals.messages = req.flash(); // attach messages to all views
+  // This gives you an object like { success: ["Message"], error: ["Message"] }
+  res.locals.messages = req.flash();
   next();
 });
 
@@ -66,14 +67,12 @@ app.use(expressLayouts);
  ************************/
 app.use(utilities.checkJWT); // applied to all requests
 
-
 /* ***********************
  * View Engine and Templates
  ************************/
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
 app.set("layout", "./layouts/layout");
-
 
 /* ***********************
  * Locals & General Variables
@@ -83,7 +82,6 @@ app.use(async (req, res, next) => {
   res.locals.nav = await utilities.getNav();
   next();
 });
-
 
 /* ***********************
  * Routes
@@ -100,7 +98,6 @@ app.use(async (req, res, next) => {
     message: "Sorry, we appear to have lost that page. Maybe it was abducted by space squirrels.",
   });
 });
-
 
 /* ***********************
  * Express Error Handler
@@ -121,7 +118,6 @@ app.use(async (err, req, res, next) => {
     nav,
   });
 });
-
 
 /* ***********************
  * Server Configuration

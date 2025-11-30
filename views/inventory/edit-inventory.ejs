@@ -1,220 +1,229 @@
-<%
-  // Set the title safely
-  const pageTitle = locals.title || (locals.inv_make && locals.inv_model ? `Edit ${locals.inv_make} ${locals.inv_model}` : "Edit Inventory Item");
-%>
+<% const inv=locals.inventory || {}; const pageTitle=locals.title || (inv.inv_make && inv.inv_model ? `Edit
+    ${inv.inv_make} ${inv.inv_model}` : "Edit Inventory Item" ); const classificationList=locals.classificationList
+    || '' ; const errors=locals.errors || []; const messages=locals.messages || {}; %>
 
-<style>
-    /* Global Styling for the View */
-    h1 {
-        text-align: center;
-        color: #333;
-        margin-bottom: 2rem;
-        font-size: 2.5rem;
-        font-weight: 700;
-    }
-
-    /* Notice/Error List Styling */
-    .notice {
-        list-style: none;
-        padding: 1rem;
-        margin: 1rem auto;
-        border-radius: 8px;
-        max-width: 700px;
-        text-align: left;
-        background-color: #ffebeb; /* Light red/pink for errors */
-        border: 1px solid #ff4444;
-        color: #d8000c; /* Dark red text */
-    }
-
-    .notice li {
-        margin-bottom: 0.5rem;
-    }
-
-    /* Form Container Styling */
-    .form-container {
-        max-width: 700px;
-        margin: 0 auto;
-        padding: 2.5rem;
-        background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-container h2 {
-        text-align: center;
-        color: #007bff; /* Primary blue color */
-        margin-bottom: 2rem;
-        font-size: 1.8rem;
-        border-bottom: 2px solid #007bff;
-        padding-bottom: 0.5rem;
-    }
-
-    /* Form Group (Label + Input) Styling */
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: #555;
-    }
-
-    /* Input, Textarea, and Select Field Styling */
-    .form-container input[type="text"],
-    .form-container input[type="number"],
-    .form-container textarea,
-    .form-container select {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        box-sizing: border-box; /* Ensures padding doesn't affect total width */
-        font-size: 1rem;
-        transition: border-color 0.3s, box-shadow 0.3s;
-    }
-
-    .form-container input:focus,
-    .form-container textarea:focus,
-    .form-container select:focus {
-        border-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-        outline: none;
-    }
-
-    .form-container textarea {
-        resize: vertical;
-        min-height: 100px;
-    }
-
-    /* Primary Button Styling */
-    .button-primary {
-        display: block;
-        width: 100%;
-        padding: 1rem;
-        margin-top: 2rem;
-        background-color: #28a745; /* Green for update/success */
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.3s ease, transform 0.1s;
-    }
-
-    .button-primary:hover {
-        background-color: #218838;
-    }
-
-    .button-primary:active {
-        transform: scale(0.99);
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .form-container {
-            padding: 1.5rem;
-            margin: 0 1rem;
+    <style>
+        /* Global Styling for the View */
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
         }
-    }
-</style>
 
-<!-- Removed redundant <html>, <head>, <body> tags as this is typically rendered as a partial -->
-<h1>
-    <%= pageTitle %>
-</h1>
+        .notice {
+            list-style: none;
+            padding: 1rem;
+            margin: 1rem auto;
+            border-radius: 8px;
+            max-width: 700px;
+            text-align: left;
+            background-color: #ffebeb;
+            border: 1px solid #ff4444;
+            color: #d8000c;
+        }
 
-<% if (locals.messages && locals.messages.length> 0) { %>
-    <ul class="notice">
-        <% locals.messages.forEach(message=> { %>
-            <li>
-                <%= message %>
-            </li>
-            <% }) %>
-    </ul>
-    <% } %>
+        .success-notice {
+            background-color: #e6f7d9;
+            border-color: #79cc30;
+            color: #387000;
+        }
 
-        <% if (locals.errors && locals.errors.length> 0) { %>
-            <ul class="notice">
-                <% locals.errors.forEach(error=> { %>
-                    <li>
-                        <%= error.msg %>
-                    </li>
-                    <% }) %>
-            </ul>
-            <% } %>
+        .notice li {
+            margin-bottom: 0.5rem;
+        }
 
-                <div class="form-container">
-                    <h2>Update Vehicle Details</h2>
-                    <form id="updateForm" action="/inv/update" method="post">
+        .form-container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 2.5rem;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
 
-                        <!-- All fields -->
-                        <div class="form-group">
-                            <label for="invMake">Make:</label>
-                            <input type="text" id="invMake" name="inv_make" required
-                                value="<%= locals.inv_make || '' %>">
-                        </div>
+        .form-container h2 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 0.5rem;
+        }
 
-                        <div class="form-group">
-                            <label for="invModel">Model:</label>
-                            <input type="text" id="invModel" name="inv_model" required
-                                value="<%= locals.inv_model || '' %>">
-                        </div>
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
-                        <div class="form-group">
-                            <label for="invYear">Year:</label>
-                            <input type="number" id="invYear" name="inv_year" required min="1886"
-                                max="<%= new Date().getFullYear() + 1 %>" value="<%= locals.inv_year || '' %>">
-                        </div>
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
 
-                        <div class="form-group">
-                            <label for="invPrice">Price:</label>
-                            <input type="number" id="invPrice" name="inv_price" required step="0.01" min="0"
-                                value="<%= locals.inv_price || '' %>">
-                        </div>
+        .form-container input[type="text"],
+        .form-container input[type="number"],
+        .form-container textarea,
+        .form-container select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
 
-                        <div class="form-group">
-                            <label for="invMiles">Miles:</label>
-                            <input type="number" id="invMiles" name="inv_miles" required min="0"
-                                value="<%= locals.inv_miles || '' %>">
-                        </div>
+        .button-primary {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-top: 2rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s;
+        }
 
-                        <div class="form-group">
-                            <label for="invColor">Color:</label>
-                            <input type="text" id="invColor" name="inv_color" required
-                                value="<%= locals.inv_color || '' %>">
-                        </div>
+        .button-primary:hover {
+            background-color: #0056b3;
+        }
 
-                        <div class="form-group">
-                            <label for="invDescription">Description:</label>
-                            <textarea id="invDescription" name="inv_description"
-                                required><%= locals.inv_description || '' %></textarea>
-                        </div>
+        .button-primary:active {
+            transform: scale(0.99);
+        }
 
-                        <div class="form-group">
-                            <label for="invImage">Image Path:</label>
-                            <input type="text" id="invImage" name="inv_image" required
-                                value="<%= locals.inv_image || '' %>">
-                        </div>
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+        }
+    </style>
 
-                        <div class="form-group">
-                            <label for="invThumbnail">Thumbnail Path:</label>
-                            <input type="text" id="invThumbnail" name="inv_thumbnail" required
-                                value="<%= locals.inv_thumbnail || '' %>">
-                        </div>
+    <h1>
+        <%= pageTitle %>
+    </h1>
 
-                        <div class="form-group">
-                            <label for="classificationList">Classification:</label>
-                            <%- locals.classifications || '' %>
-                        </div>
+    <!-- Flash Messages -->
+    <% if (messages.success && messages.success.length> 0) { %>
+        <ul class="notice success-notice">
+            <% messages.success.forEach(msg=> { %>
+                <li>
+                    <%= msg %>
+                </li>
+                <% }) %>
+        </ul>
+        <% } %>
 
-                        <button id="updateBtn" type="submit" class="button-primary" disabled>Update Vehicle</button>
+            <% if (messages.error && messages.error.length> 0) { %>
+                <ul class="notice">
+                    <% messages.error.forEach(msg=> { %>
+                        <li>
+                            <%= msg %>
+                        </li>
+                        <% }) %>
+                </ul>
+                <% } %>
 
-                        <input type="hidden" name="inv_id" value="<%= locals.inv_id || '' %>">
-                    </form>
-                </div>
+                    <% if (errors.length> 0) { %>
+                        <ul class="notice">
+                            <% errors.forEach(err=> { %>
+                                <li>
+                                    <%= err.msg %>
+                                </li>
+                                <% }) %>
+                        </ul>
+                        <% } %>
 
-                <!-- Link JS to enable button only on change -->
-                <script src="/js/inv-update.js"></script>
+                            <div class="form-container">
+                                <h2>Editing <%= inv.inv_make && inv.inv_model ? inv.inv_make + ' ' + inv.inv_model
+                                        : 'Inventory Item' %>
+                                </h2>
+
+                                <form id="updateForm" action="/inv/update" method="post">
+
+                                    <!-- Classification List -->
+                                    <div class="form-group">
+                                        <label for="classificationId">Classification:</label>
+                                        <%- classificationList %>
+                                    </div>
+
+                                    <!-- Make -->
+                                    <div class="form-group">
+                                        <label for="invMake">Make:</label>
+                                        <input type="text" id="invMake" name="inv_make" required
+                                            value="<%= inv.inv_make || '' %>" placeholder="Enter Make" maxlength="20">
+                                    </div>
+
+                                    <!-- Model -->
+                                    <div class="form-group">
+                                        <label for="invModel">Model:</label>
+                                        <input type="text" id="invModel" name="inv_model" required
+                                            value="<%= inv.inv_model || '' %>" placeholder="Enter Model" maxlength="20">
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="form-group">
+                                        <label for="invDescription">Description:</label>
+                                        <textarea id="invDescription" name="inv_description" required
+                                            placeholder="Enter Description"><%= inv.inv_description || '' %></textarea>
+                                    </div>
+
+                                    <!-- Image Path -->
+                                    <div class="form-group">
+                                        <label for="invImage">Image Path:</label>
+                                        <input type="text" id="invImage" name="inv_image" required
+                                            value="<%= inv.inv_image || '/images/vehicles/no-image.png' %>"
+                                            placeholder="Image Path" maxlength="50">
+                                    </div>
+
+                                    <!-- Thumbnail Path -->
+                                    <div class="form-group">
+                                        <label for="invThumbnail">Thumbnail Path:</label>
+                                        <input type="text" id="invThumbnail" name="inv_thumbnail" required
+                                            value="<%= inv.inv_thumbnail || '/images/vehicles/no-image-tn.png' %>"
+                                            placeholder="Thumbnail Path" maxlength="50">
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="form-group">
+                                        <label for="invPrice">Price:</label>
+                                        <input type="number" id="invPrice" name="inv_price" required
+                                            value="<%= inv.inv_price || '' %>" placeholder="Enter Price" min="0"
+                                            step="1">
+                                    </div>
+
+                                    <!-- Year -->
+                                    <div class="form-group">
+                                        <label for="invYear">Year:</label>
+                                        <input type="number" id="invYear" name="inv_year" required
+                                            value="<%= inv.inv_year || '' %>" placeholder="Enter Year" pattern="\d{4}">
+                                    </div>
+
+                                    <!-- Miles -->
+                                    <div class="form-group">
+                                        <label for="invMiles">Miles:</label>
+                                        <input type="number" id="invMiles" name="inv_miles" required
+                                            value="<%= inv.inv_miles || '' %>" placeholder="Enter Miles" min="0"
+                                            step="1">
+                                    </div>
+
+                                    <!-- Color -->
+                                    <div class="form-group">
+                                        <label for="invColor">Color:</label>
+                                        <input type="text" id="invColor" name="inv_color" required
+                                            value="<%= inv.inv_color || '' %>" placeholder="Enter Color" maxlength="20">
+                                    </div>
+
+                                    <!-- Hidden Inventory ID -->
+                                    <input type="hidden" name="inv_id" value="<%= inv.inv_id %>">
+
+                                    <button id="updateBtn" type="submit" class="button-primary">Update Vehicle</button>
+                                </form>
+                            </div>

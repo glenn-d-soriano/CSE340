@@ -162,7 +162,6 @@
             <% } %>
 
                 
-                <!-- FIXED FLASH MESSAGES BLOCK: Shows all notice and error messages -->
                 <% if (messages) { %>
                     <% Object.keys(messages).forEach(type=> { %>
                         <% messages[type].forEach(msg=> { %>
@@ -172,7 +171,7 @@
                             <% }) %>
                                 <% }) %>
                                     <% } %>
-                                        <!-- END FLASH MESSAGES -->
+
 
                                         <h2 class="text-2xl font-semibold mb-4">Classification Management</h2>
                                         <p class="mb-6">Use the links below to create new classifications and inventory
