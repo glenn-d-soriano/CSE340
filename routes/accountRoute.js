@@ -12,7 +12,6 @@ router.get("/test", (req, res) => {
 
 // Default route for account management view (Protected)
 // Access: /account/
-// FIX: Add utilities.checkLogin middleware. If logged out, it will redirect to /account/login
 router.get("/", 
     utilities.checkLogin, // Middleware checks for valid JWT/session
     utilities.handleErrors(accountController.buildAccountManagement)
@@ -24,7 +23,7 @@ router.get("/login", utilities.handleErrors(accountController.buildLogin));
 // Build registration view
 router.get("/register", utilities.handleErrors(accountController.buildRegister));
 
-// Route to log the user out (NEW)
+// Route to log the user out
 // Access: /account/logout
 router.get("/logout", utilities.handleErrors(accountController.accountLogout));
 
@@ -35,13 +34,14 @@ router.get("/logout", utilities.handleErrors(accountController.accountLogout));
 
 // Route to build the Account Update view (Protected)
 // Access: /account/update
+// Removed the :accountId parameter as the ID is retrieved from res.locals.accountData
 router.get(
   "/update", 
   utilities.checkLogin, 
   utilities.handleErrors(accountController.buildAccountUpdateView)
 );
 
-// POST route to process the Account Update request
+// POST route to process the Account Update request (Information)
 router.post(
   "/update",
   utilities.checkLogin,

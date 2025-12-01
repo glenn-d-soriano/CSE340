@@ -2,6 +2,7 @@ const utilities = require("../utilities/"); // Import necessary utilities
 const accountModel = require("../models/account-model"); // Account model for database interactions
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { validationResult } = require("express-validator"); // <-- ADDED for changePassword error checking
 require("dotenv").config(); // To access process.env.ACCESS_TOKEN_SECRET
 
 /* ****************************************
@@ -9,12 +10,16 @@ require("dotenv").config(); // To access process.env.ACCESS_TOKEN_SECRET
  * *************************************** */
 async function buildLogin(req, res, next) {
   let nav = await utilities.getNav();
+  
+  // Retrieve specific flash messages
+  // This replaces the old global middleware's job for this specific view
   const errors = req.flash("error");
   const notice = req.flash("notice");
 
   res.render("account/login", {
     title: "Login",
     nav,
+    // Pass the specific message variables
     errors: errors.length > 0 ? errors : null,
     notice: notice.length > 0 ? notice : null,
     account_email: "", // Always define to prevent EJS crash
@@ -82,15 +87,11 @@ async function registerAccount(req, res) {
 async function accountLogin(req, res) {
   let nav = await utilities.getNav();
 
-  // DEBUG: Log form submission
-  console.log("Body:", req.body);
   const { account_email, account_password } = req.body;
-  console.log("Email:", account_email, "Password:", account_password);
 
   try {
     // 1. Fetch account data
     const accountData = await accountModel.getAccountByEmail(account_email);
-    console.log("Account Data:", accountData); // DEBUG: check what DB returns
 
     // 2. Handle email not found
     if (!accountData) {
@@ -99,7 +100,8 @@ async function accountLogin(req, res) {
         title: "Login",
         nav,
         errors: null,
-        notice: req.flash("notice"),
+        // Pass the specific message variables
+        notice: req.flash("notice"), 
         account_email, // preserve email for sticky form
       });
     }
@@ -112,6 +114,7 @@ async function accountLogin(req, res) {
         title: "Login",
         nav,
         errors: null,
+        // Pass the specific message variables
         notice: req.flash("notice"),
         account_email,
       });
@@ -134,6 +137,7 @@ async function accountLogin(req, res) {
       title: "Login",
       nav,
       errors: null,
+      // Pass the specific message variables
       notice: req.flash("error"),
       account_email,
     });
@@ -145,12 +149,14 @@ async function accountLogin(req, res) {
  * *************************************** */
 async function buildAccountManagement(req, res, next) {
   let nav = await utilities.getNav();
+  
+  const errors = req.flash("error");
   const notice = req.flash("notice");
 
   res.render("account/account-management", {
     title: "Account Management",
     nav,
-    errors: null,
+    errors: errors.length > 0 ? errors : null, 
     notice: notice.length > 0 ? notice : null,
   });
 }
@@ -162,12 +168,15 @@ async function buildAccountUpdateView(req, res, next) {
   let nav = await utilities.getNav();
   // We rely on res.locals.accountData which is set by the checkLogin utility
   const accountData = res.locals.accountData; 
+  
+  const errors = req.flash("error");
   const notice = req.flash("notice");
+
 
   res.render("account/account-update", {
     title: "Edit Account",
     nav,
-    errors: null,
+    errors: errors.length > 0 ? errors : null,
     notice: notice.length > 0 ? notice : null,
     account_firstname: accountData.account_firstname,
     account_lastname: accountData.account_lastname,
@@ -181,8 +190,14 @@ async function buildAccountUpdateView(req, res, next) {
  * *************************************** */
 async function updateAccount(req, res) {
   let nav = await utilities.getNav();
+  // We rely on res.locals.accountData for original data in case of re-render
+  const accountData = res.locals.accountData; 
   const { account_firstname, account_lastname, account_email, account_id } = req.body;
 
+  // NOTE: If validation (including custom email check) failed, the middleware 
+  // (checkUpdateEmail) will render the view and return, preventing this function from running.
+  // We only run here if validation passed.
+  
   const updateResult = await accountModel.updateAccount(
     account_firstname,
     account_lastname,
@@ -211,26 +226,25 @@ async function updateAccount(req, res) {
     if (process.env.NODE_ENV !== "development") cookieOptions.secure = true;
     res.cookie("jwt", accessToken, cookieOptions);
     
-    // 4. Update res.locals for the next page load
+    // 4. Update res.locals for the next page load (redirect to /account/)
     res.locals.accountData = updatedAccountData;
     res.locals.loggedin = 1;
 
     res.redirect("/account/");
   } else {
-    // Failed update
-    req.flash("notice", "Sorry, the account update failed.");
-    // Re-fetch the current account data in case validation passed but DB failed
-    const accountData = await accountModel.getAccountById(account_id);
+    // Failed database update (should be rare)
+    req.flash("notice", "Sorry, the account update failed due to a server error.");
     
-    // Re-render the update form with sticky data
-    res.status(501).render("account/account-update", {
+    // Re-render the update form with current request data (sticky form)
+    res.status(500).render("account/account-update", {
         title: "Edit Account",
         nav,
-        errors: null, // Errors would be handled by checkUpdateData middleware if there were validation errors
+        errors: [{ msg: "Database update failed." }], 
         notice: req.flash("notice"),
-        account_firstname: accountData.account_firstname,
-        account_lastname: accountData.account_lastname,
-        account_email: accountData.account_email,
+        // Pass the data that was attempted to be saved
+        account_firstname,
+        account_lastname,
+        account_email,
         account_id,
     });
   }
@@ -242,18 +256,39 @@ async function updateAccount(req, res) {
 async function changePassword(req, res) {
     let nav = await utilities.getNav();
     const { current_password, new_password, account_id } = req.body;
+    // Get existing data from res.locals for re-rendering sticky form data
+    const accountData = res.locals.accountData; 
+
+    // 1. Check for express-validator errors (New password complexity)
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        let nav = await utilities.getNav()
+        // Pass back all sticky data + the validation errors
+        return res.status(400).render("account/account-update", {
+            title: "Edit Account",
+            nav,
+            errors: errors.array(), // Pass validation errors
+            notice: null,
+            // Sticky data for Name/Email section
+            account_firstname: accountData.account_firstname, 
+            account_lastname: accountData.account_lastname,
+            account_email: accountData.account_email,
+            account_id: accountData.account_id,
+        })
+    }
     
-    // 1. Get account data to verify current password
-    const accountData = await accountModel.getAccountById(account_id);
+    // 2. Get full account data from the DB to access the hashed password
+    const fullAccountData = await accountModel.getAccountById(account_id);
     
-    // Check if the current password matches the one in the DB
-    if (!(await bcrypt.compare(current_password, accountData.account_password))) {
+    // 3. Check if the current password matches the one in the DB
+    if (!(await bcrypt.compare(current_password, fullAccountData.account_password))) {
         req.flash("notice", "The current password entered is incorrect.");
         // Re-render the update view with existing data
         return res.status(400).render("account/account-update", {
             title: "Edit Account",
             nav,
-            errors: null,
+            // Manually add the error message to the errors array for display
+            errors: [{ msg: "The current password entered is incorrect." }],
             notice: req.flash("notice"),
             account_firstname: accountData.account_firstname,
             account_lastname: accountData.account_lastname,
@@ -262,12 +297,13 @@ async function changePassword(req, res) {
         });
     }
 
-    // 2. Hash the new password
+    // 4. Hash the new password
     let newHashedPassword;
     try {
         newHashedPassword = await bcrypt.hash(new_password, 10);
     } catch (error) {
-        req.flash("notice", "Sorry, there was an error hashing the new password.");
+        console.error("Password Hashing Error:", error);
+        req.flash("notice", "Sorry, there was an error processing the new password.");
         res.status(500).render("account/account-update", {
             title: "Edit Account",
             nav,
@@ -281,7 +317,7 @@ async function changePassword(req, res) {
         return;
     }
 
-    // 3. Update the password in the database
+    // 5. Update the password in the database
     const updateResult = await accountModel.updatePassword(account_id, newHashedPassword);
 
     if (updateResult) {
@@ -319,8 +355,8 @@ module.exports = {
   registerAccount, 
   accountLogin,
   buildAccountManagement,
-  buildAccountUpdateView, // Added to deliver update view
-  updateAccount,          // Added to process account name/email update
-  changePassword,         // Added to process password change
+  buildAccountUpdateView, 
+  updateAccount,          
+  changePassword,         
   accountLogout
 };

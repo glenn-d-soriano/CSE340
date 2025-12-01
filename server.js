@@ -48,11 +48,14 @@ app.use(cookieParser());
 app.use(flash());
 
 // Make flash messages available in all EJS views
+// The following block has been REMOVED because it was prematurely consuming (clearing)
+// the flash messages before the controller could access them on a redirect.
+/*
 app.use((req, res, next) => {
-  // This gives you an object like { success: ["Message"], error: ["Message"] }
   res.locals.messages = req.flash();
   next();
 });
+*/
 
 // Body parser middleware
 app.use(bodyParser.json());
@@ -80,6 +83,8 @@ app.set("layout", "./layouts/layout");
 // Global navigation variable
 app.use(async (req, res, next) => {
   res.locals.nav = await utilities.getNav();
+  // Optional: You can set the notice/error locals here if you prefer to 
+  // do it globally, but for now, we rely on the controller passing them.
   next();
 });
 

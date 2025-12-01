@@ -5,7 +5,7 @@ require("dotenv").config()
 const Util = {}
 
 /* ****************************************
- * Check Login
+ * Check JWT (runs on every page load to populate res.locals)
  * ************************************ */
 Util.checkJWT = (req, res, next) => {
     // FIX: Ensure req.cookies exists before accessing req.cookies.jwt
@@ -43,6 +43,24 @@ Util.checkLogin = (req, res, next) => {
   }
 }
 
+/* **************************************
+ * Middleware to check for Employee or Admin account type
+ * REQUIRED FOR THE INVENTORY MANAGEMENT ROUTE (/inv)
+ * ************************************ */
+Util.checkEmployeeOrAdmin = (req, res, next) => {
+    // Check if accountData exists and extract the account_type, default to an empty string if not
+    const accountType = res.locals.accountData ? res.locals.accountData.account_type : '';
+  
+    if (accountType === 'Employee' || accountType === 'Admin') {
+      next(); // User is authorized, proceed to the next middleware/controller
+    } else {
+      // CRITICAL: Set the flash message before redirecting
+      req.flash("notice", "You do not have the necessary authorization to access inventory management.");
+      
+      // Redirect to the account management page for unauthorized users
+      return res.redirect("/account");
+    }
+  };
 
 /* **************************************
  * Build the navigation menu

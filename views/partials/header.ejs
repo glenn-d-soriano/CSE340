@@ -5,13 +5,15 @@
 
         <!-- Account Links - Conditional Logic -->
         <% if (locals.loggedin && locals.accountData) { %>
-            <!-- Show when logged in -->
-            <span class="welcome-message">Welcome <%= locals.accountData.account_firstname %></span>
-            <a href="/account" title="Manage Account" class="account-link">My Account</a>
+            <!-- SHOW WHEN LOGGED IN -->
+            <!-- This "Welcome" link now serves as the link to "My Account" management view -->
+            <a href="/account" title="Manage Account" class="account-link welcome-link">
+                Welcome <%= locals.accountData.account_firstname %>
+            </a>
             <a href="/account/logout" title="Click to log out" class="account-link">Logout</a>
             <% } else { %>
-                <!-- Show when logged out or account data is missing -->
-                <a href="/account" title="My Account" class="account-link">My Account</a>
+                <!-- SHOW WHEN LOGGED OUT -->
+                <a href="/account/login" title="My Account" class="account-link">My Account</a>
                 <% } %>
     </div>
 </header>

@@ -153,7 +153,8 @@ validate.updateAccountRules = () => {
       .normalizeEmail()
       .withMessage("A valid email is required.")
       .custom(async (account_email, { req }) => {
-        const account_id = req.body.account_id;
+        // IMPORTANT: The account_id should be available in req.body for this POST route
+        const account_id = req.body.account_id; 
         const accountData = await accountModel.getAccountById(account_id);
 
         // Check if the submitted email is the same as the current email
@@ -182,6 +183,8 @@ validate.checkUpdateData = async (req, res, next) => {
       errors: errors.array(),
       title: "Edit Account",
       nav,
+      // *** FIX: Added 'notice: null' to define the variable for the view ***
+      notice: null, 
       account_firstname,
       account_lastname,
       account_email,
@@ -221,7 +224,8 @@ validate.changePasswordRules = () => {
  * Check data and return errors or continue to password change (NEW)
  * ***************************** */
 validate.checkPasswordData = async (req, res, next) => {
-  const { account_id } = req.body;
+  // account_id is required in the body for this check function to fetch data
+  const { account_id } = req.body; 
   let errors = validationResult(req);
   let nav = await utilities.getNav();
 
@@ -234,6 +238,9 @@ validate.checkPasswordData = async (req, res, next) => {
       errors: errors.array(),
       title: "Edit Account",
       nav,
+      // *** FIX: Added 'notice: null' to define the variable for the view ***
+      notice: null,
+      // Populate name and email fields from the fetched data
       account_firstname: accountData.account_firstname,
       account_lastname: accountData.account_lastname,
       account_email: accountData.account_email,

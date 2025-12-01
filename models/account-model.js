@@ -57,7 +57,10 @@ async function getAccountById (account_id) {
       [account_id])
     return result.rows[0]
   } catch (error) {
-    return new Error("No matching account ID found")
+    // Log the error for debugging purposes
+    console.error("getAccountById error:", error);
+    // Return a generic error object
+    return new Error("No matching account ID found");
   }
 }
 
@@ -116,7 +119,7 @@ module.exports = {
   registerAccount,
   checkExistingEmail,
   getAccountByEmail,
-  getAccountById, // NEW
-  updateAccount,  // NEW
-  updatePassword, // NEW
+  getAccountById, 
+  updateAccount,  
+  updatePassword, 
 };
