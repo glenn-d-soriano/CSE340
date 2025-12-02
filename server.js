@@ -18,6 +18,7 @@ const inventoryRoute = require("./routes/inventoryRoute");
 const accountRoute = require("./routes/accountRoute");
 const baseRoute = require("./routes/baseRoute");
 
+
 const app = express();
 const cookieParser = require("cookie-parser");
 const flash = require("connect-flash");

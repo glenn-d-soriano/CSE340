@@ -1,49 +1,24 @@
-const { Pool } = require("pg")
-require("dotenv").config()
+const { Pool } = require("pg");
+require("dotenv").config();
 
-/* ***************
- * Connection Pool
- * Sets up SSL/TLS encryption for secure connection.
- * It uses SSL in all environments (production and development) 
- * when connecting to an external database like Render's PostgreSQL.
- * *************** */
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL is not defined!");
+  process.exit(1);
+}
 
-let pool;
-
-// Determine if running locally (development) or on Render (production)
-const isProduction = process.env.NODE_ENV === "production";
-
-// Configuration object includes the connection string and SSL settings
 const dbConfig = {
   connectionString: process.env.DATABASE_URL,
-  // Use SSL for all environments where an external database is used.
-  // rejectUnauthorized: false is often required because Render's DB
-  // uses a self-signed or non-standard certificate.
-  ssl: isProduction 
-    ? { rejectUnauthorized: false } 
-    // In development, we still need SSL if connecting to an external DB
-    : { rejectUnauthorized: false }, 
+  ssl: { rejectUnauthorized: false },
 };
 
-pool = new Pool(dbConfig);
+const pool = new Pool(dbConfig);
 
-
-// If in development mode, export a wrapper function 
-// for query logging/troubleshooting
-if (!isProduction) {
-  module.exports = {
-    async query(text, params) {
-      try {
-        const res = await pool.query(text, params)
-        console.log("executed query", { text })
-        return res
-      } catch (error) {
-        console.error("error in query", { text })
-        throw error
-      }
-    },
-  }
-} else {
-  // In production (on Render), export the pool directly
-  module.exports = pool
+if (process.env.NODE_ENV !== "production") {
+  const origQuery = pool.query.bind(pool);
+  pool.query = async (text, params) => {
+    console.log("executing query:", text);
+    return origQuery(text, params);
+  };
 }
+
+module.exports = pool;
