@@ -17,13 +17,25 @@ Util.checkJWT = (req, res, next) => {
                 if (err) {
                     req.flash("notice", "Please log in")
                     res.clearCookie("jwt")
+                    // IMPORTANT: When JWT is invalid, clear session data just in case
+                    req.session.accountData = null;
                     return res.redirect("/account/login") 
                 }
+                
+                // CRITICAL ADDITION 1: Save data to the SESSION (req.session) 
+                // This makes the data persistently available across controllers and middlewares.
+                req.session.accountData = accountData
+
+                // Keep setting res.locals here so Util.checkLogin (and the header) works immediately.
                 res.locals.accountData = accountData
                 res.locals.loggedin = 1
                 next()
             })
     } else {
+        // CRITICAL ADDITION 2: Explicitly define locals when no JWT is present.
+        // This prevents the "variable is not defined" error in EJS views.
+        res.locals.loggedin = 0;
+        res.locals.accountData = null;
         next()
     }
 }

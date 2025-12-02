@@ -1,0 +1,37 @@
+<!-- 
+    This partial displays flash messages.
+    It expects two variables from the controller:
+    1. 'notice': A single success message string (or null).
+    2. 'errors': An array of error objects/strings (or null/undefined), 
+       which includes both general flash errors and validation errors.
+-->
+
+<div class="message-area">
+
+    <!-- 1. Display SUCCESS flash messages (notice: single string) -->
+    <% if (notice && typeof notice==='string' ) { %>
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-lg shadow-md" role="alert">
+            <p>
+                <%= notice %>
+            </p>
+        </div>
+        <% } %>
+
+            <!-- 2. Display ALL ERROR messages (errors: array of objects/strings) -->
+            <!-- This handles both req.flash("error") and express-validator errors -->
+            <% if (errors && Array.isArray(errors) && errors.length> 0) { %>
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-lg shadow-md"
+                    role="alert">
+                    <p class="font-bold">Please correct the following errors:</p>
+                    <ul class="list-disc list-inside mt-2">
+                        <% errors.forEach(function (error) { %>
+                            <li>
+                                <!-- Use error.msg for express-validator objects, or the error itself if it's a string -->
+                                <%= error.msg || error %>
+                            </li>
+                            <% }) %>
+                    </ul>
+                </div>
+                <% } %>
+
+</div>

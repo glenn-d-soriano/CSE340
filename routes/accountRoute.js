@@ -33,10 +33,9 @@ router.get("/logout", utilities.handleErrors(accountController.accountLogout));
 // **********************************************
 
 // Route to build the Account Update view (Protected)
-// Access: /account/update
-// Removed the :accountId parameter as the ID is retrieved from res.locals.accountData
+// Path changed to /update-account-info (ID is read from session/JWT in controller)
 router.get(
-  "/update", 
+  "/update-account-info", 
   utilities.checkLogin, 
   utilities.handleErrors(accountController.buildAccountUpdateView)
 );
@@ -45,8 +44,8 @@ router.get(
 router.post(
   "/update",
   utilities.checkLogin,
-  regValidate.updateAccountRules(),  // Requires implementation in account-validation.js
-  regValidate.checkUpdateData,       // Requires implementation in account-validation.js
+  regValidate.updateAccountRules(),  // Validation rules for name/email
+  regValidate.checkUpdateData,       // Check and re-render if validation fails
   utilities.handleErrors(accountController.updateAccount)
 );
 
@@ -59,8 +58,10 @@ router.post(
 router.post(
   "/change-password",
   utilities.checkLogin,
-  regValidate.changePasswordRules(),  // Requires implementation in account-validation.js
-  regValidate.checkPasswordData,     // Requires implementation in account-validation.js
+  regValidate.changePasswordRules(),  // Validation rules for new password (complexity)
+  // NOTE: checkPasswordData middleware is skipped because the controller (changePassword)
+  // handles both new password validation errors and the current password check, 
+  // allowing for correct re-rendering of the sticky form data.
   utilities.handleErrors(accountController.changePassword)
 );
 

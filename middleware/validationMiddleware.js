@@ -72,12 +72,20 @@ const accountUpdateRules = () => {
  * authentication middleware that runs BEFORE this.
  *****************************************/
 const checkUpdateEmail = async (req, res, next) => {
-    const { account_email, account_firstname, account_lastname } = req.body
+    const { account_email, account_firstname, account_lastname, account_id } = req.body
     const errors = validationResult(req)
+    
+    // --- DEBUGGING LOG 1: Check incoming request body and current path ---
+    console.log("--- DEBUG: checkUpdateEmail executed ---")
+    console.log("Request Method:", req.method)
+    console.log("Request URL:", req.originalUrl)
+    console.log("Incoming Form Data:", { account_id, account_firstname, account_lastname, account_email })
+    console.log("------------------------------------------")
+
 
     // 1. If express-validator found basic format/presence errors, proceed to next step 
-    //    (usually the controller) to handle those errors.
     if (!errors.isEmpty()) {
+        console.log("DEBUG: Basic validation errors found. Proceeding to next middleware/controller.")
         return next()
     }
 
@@ -92,6 +100,11 @@ const checkUpdateEmail = async (req, res, next) => {
         if (emailExists) {
             // Failed: Email exists and is different from current user's email
             req.flash("notice", "That email address is already in use by another account.")
+            
+            // --- DEBUGGING LOG 2: Failure case (Email Conflict) ---
+            console.log("DEBUG: FAILURE - New email already exists in DB.")
+            console.log("------------------------------------------")
+
 
             // Manually render the view to retain the submitted data and display the error
             let nav = await utilities.getNav()
@@ -99,17 +112,20 @@ const checkUpdateEmail = async (req, res, next) => {
                 title: "Edit Account",
                 nav,
                 // Pass a simple array of string errors for display in the view
-                errors: ["That email address is already in use by another account."],
-                firstName: account_firstname,
-                lastName: account_lastname,
-                email: account_email,
-                // We need to pass back the original account data (which includes account_id) 
-                // so the form can submit the correct ID if successful later.
-                accountData: res.locals.accountData 
+                errors: [{ msg: "That email address is already in use by another account." }],
+                // Ensure correct keys are passed for view rendering
+                account_firstname: account_firstname,
+                account_lastname: account_lastname,
+                account_email: account_email,
+                account_id: account_id,
             })
             return // STOP EXECUTION
         }
     }
+    
+    // --- DEBUGGING LOG 3: Success case ---
+    console.log("DEBUG: SUCCESS - Validation passed. Calling next() to proceed to controller.")
+    console.log("------------------------------------------")
 
     // 5. Success: Email is either the same, or it's new and doesn't exist. Proceed.
     next()
@@ -121,7 +137,7 @@ const checkUpdateEmail = async (req, res, next) => {
  * *************************************** */
 const passwordRules = () => {
     return [
-        body("account_password")
+        body("new_password") // Changed from account_password to match form field name
             .trim()
             .isLength({ min: 12 })
             .withMessage("Password does not meet requirements."),

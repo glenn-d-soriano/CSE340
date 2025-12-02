@@ -12,7 +12,7 @@ const { checkEmployeeOrAdmin } = require("../middleware/check-authorization");
 // ---------------------------
 // *** PROTECTED ROUTE: Requires 'Employee' or 'Admin' ***
 router.get("/", 
-  checkEmployeeOrAdmin, // <-- Added authorization check
+  checkEmployeeOrAdmin, // <-- Authorization check
   utilities.handleErrors(invController.buildManagementView)
 );
 
@@ -20,12 +20,11 @@ router.get("/",
 // GET INVENTORY JSON (NEW ROUTE FOR AJAX)
 // ---------------------------
 // Route to return inventory by classification for the management select tool 
-// Note: Since this is used exclusively within the administrative view, it is protected.
 // Access: site-name/inv/getInventory/:classification_id
 // *** PROTECTED ROUTE: Requires 'Employee' or 'Admin' ***
 router.get(
   "/getInventory/:classification_id",
-  checkEmployeeOrAdmin, // <-- Added authorization check
+  checkEmployeeOrAdmin, // <-- Authorization check
   utilities.handleErrors(invController.getInventoryJSON)
 );
 
@@ -37,8 +36,7 @@ router.get(
 // *** PROTECTED ROUTE: Requires 'Employee' or 'Admin' ***
 router.get(
   "/edit/:inv_id",
-  checkEmployeeOrAdmin, // <-- Added authorization check
-  // FIX: Changed to match the function name in invController.js
+  checkEmployeeOrAdmin, // <-- Authorization check
   utilities.handleErrors(invController.editInventoryView) 
 );
 
@@ -50,10 +48,8 @@ router.get(
 // *** PROTECTED PROCESS: Requires 'Employee' or 'Admin' ***
 router.post(
   "/update",
-  checkEmployeeOrAdmin, // <-- Added authorization check
-  // Reuse inventory validation rules
+  checkEmployeeOrAdmin, // <-- Authorization check
   invValidation.inventoryRules(), 
-  // You should have a separate check function for update to handle the redirect path differently
   invValidation.checkUpdateData,
   utilities.handleErrors(invController.updateInventory) 
 );
@@ -65,14 +61,14 @@ router.post(
 // *** PROTECTED ROUTE: Requires 'Employee' or 'Admin' ***
 router.get(
   "/add-classification",
-  checkEmployeeOrAdmin, // <-- Added authorization check
+  checkEmployeeOrAdmin, // <-- Authorization check
   utilities.handleErrors(invController.buildAddClassification)
 );
 
 // *** PROTECTED PROCESS: Requires 'Employee' or 'Admin' ***
 router.post(
   "/add-classification",
-  checkEmployeeOrAdmin, // <-- Added authorization check
+  checkEmployeeOrAdmin, // <-- Authorization check
   invValidation.classificationRules(),
   invValidation.checkClassificationData,
   utilities.handleErrors(invController.addClassification)
@@ -84,66 +80,81 @@ router.post(
 // *** PROTECTED ROUTE: Requires 'Employee' or 'Admin' ***
 router.get(
   "/add-inventory",
-  checkEmployeeOrAdmin, // <-- Added authorization check
+  checkEmployeeOrAdmin, // <-- Authorization check
   utilities.handleErrors(invController.buildAddInventory)
 );
 
-// ***** FIX START: THIS WAS THE MISSING ROUTE *****
 // Route to process the inventory add form submission
 // *** PROTECTED PROCESS: Requires 'Employee' or 'Admin' ***
 router.post(
   "/add-inventory",
-  checkEmployeeOrAdmin, // <-- Added authorization check
+  checkEmployeeOrAdmin, // <-- Authorization check
   invValidation.inventoryRules(), 
   invValidation.checkInventoryData,
-  utilities.handleErrors(invController.addInventory) // Assuming your controller function is named addInventory
+  utilities.handleErrors(invController.addInventory)
 );
-// ***** FIX END *****
 
-/* NOTE: The duplicate POST /update route previously here has been removed.
-  It was causing confusion and was not the correct handler for /add-inventory.
-*/
+// ---------------------------
+// DELETE INVENTORY ITEM
+// ---------------------------
+// Route to deliver the delete confirmation view
+// Path: /inv/delete/:inv_id
+// *** PROTECTED ROUTE: Requires 'Employee' or 'Admin' ***
+router.get("/delete/:inv_id", 
+  checkEmployeeOrAdmin, // <-- Authorization check
+  utilities.handleErrors(invController.buildDeleteConfirmation)
+);
+
+// Route to handle the actual item deletion
+// *** PROTECTED PROCESS: Requires 'Employee' or 'Admin' ***
+router.post(
+  "/delete/", 
+  checkEmployeeOrAdmin, // <-- Authorization check
+  utilities.handleErrors(invController.deleteInventory)
+);
 
 
 // ---------------------------
-// INVENTORY BY CLASSIFICATION
+// DELETE CLASSIFICATION
 // ---------------------------
-// PUBLIC ROUTE: Accessible to all visitors
+// NEW ROUTE: Build the delete confirmation view for a classification
+// Path: /inv/delete-classification/:classificationId
+// *** PROTECTED ROUTE: Requires 'Employee' or 'Admin' ***
+router.get(
+  "/delete-classification/:classificationId",
+  checkEmployeeOrAdmin, // <-- Authorization check
+  utilities.handleErrors(invController.buildDeleteClassification)
+);
+
+// NEW ROUTE: Process the classification deletion
+// Path: /inv/delete-classification
+// *** PROTECTED PROCESS: Requires 'Employee' or 'Admin' ***
+router.post(
+  "/delete-classification",
+  checkEmployeeOrAdmin, // <-- Authorization check
+  utilities.handleErrors(invController.deleteClassification)
+);
+
+
+// ---------------------------
+// INVENTORY BY CLASSIFICATION (PUBLIC)
+// ---------------------------
 router.get(
   "/classification/:classificationId",
   utilities.handleErrors(invController.buildByClassificationId)
 );
 
 // ---------------------------
-// VEHICLE DETAIL
+// VEHICLE DETAIL (PUBLIC)
 // ---------------------------
-// PUBLIC ROUTE: Accessible to all visitors
 router.get(
   "/detail/:invId",
   utilities.handleErrors(invController.buildByInvId)
 );
 
 // ---------------------------
-// ERROR TEST
+// ERROR TEST (PUBLIC)
 // ---------------------------
-// PUBLIC ROUTE: Accessible to all visitors
 router.get("/error", utilities.handleErrors(invController.triggerError));
-
-// New Task: Route to deliver the delete confirmation view
-// Path: /inv/delete/:inv_id (Matches the Delete link structure)
-// *** PROTECTED ROUTE: Replaced checkLogin with checkEmployeeOrAdmin ***
-router.get("/delete/:inv_id", 
-  checkEmployeeOrAdmin, 
-  utilities.handleErrors(invController.buildDeleteConfirmation)
-);
-
-// New Task: Route to handle the actual item deletion
-// The route will call the function 'deleteInventory' which we will build next.
-// *** PROTECTED PROCESS: Replaced checkLogin with checkEmployeeOrAdmin ***
-router.post(
-  "/delete/", 
-  checkEmployeeOrAdmin, 
-  utilities.handleErrors(invController.deleteInventory)
-);
 
 module.exports = router;

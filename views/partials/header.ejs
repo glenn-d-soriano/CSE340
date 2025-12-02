@@ -4,16 +4,32 @@
         <a href="/" title="Home" id="logo">CSE Motors</a>
 
         <!-- Account Links - Conditional Logic -->
-        <% if (locals.loggedin && locals.accountData) { %>
+        <% if (loggedin && accountData) { %>
             <!-- SHOW WHEN LOGGED IN -->
-            <!-- This "Welcome" link now serves as the link to "My Account" management view -->
             <a href="/account" title="Manage Account" class="account-link welcome-link">
-                Welcome <%= locals.accountData.account_firstname %>
+                Welcome <%= accountData.account_firstname %>
             </a>
             <a href="/account/logout" title="Click to log out" class="account-link">Logout</a>
             <% } else { %>
                 <!-- SHOW WHEN LOGGED OUT -->
                 <a href="/account/login" title="My Account" class="account-link">My Account</a>
                 <% } %>
+    </div>
+
+    <!-- OPTIONAL: flash messages can also be displayed here -->
+    <div id="header-flash-messages">
+        <% if (flash && flash.notice && flash.notice.length> 0) { %>
+            <div class="alert alert-success">
+                <%= flash.notice[0] %>
+            </div>
+            <% } %>
+
+                <% if (flash && flash.error && flash.error.length> 0) { %>
+                    <% flash.error.forEach(err=> { %>
+                        <div class="alert alert-danger">
+                            <%= err.msg || err %>
+                        </div>
+                        <% }) %>
+                            <% } %>
     </div>
 </header>

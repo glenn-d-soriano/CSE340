@@ -47,15 +47,22 @@ app.use(cookieParser());
 // Flash Middleware
 app.use(flash());
 
-// Make flash messages available in all EJS views
-// The following block has been REMOVED because it was prematurely consuming (clearing)
-// the flash messages before the controller could access them on a redirect.
-/*
+/* ***********************
+ * Global Locals Middleware (Re-inserted)
+ ***********************
+ * This middleware ensures the "messages" variable is always defined 
+ * in all EJS views (even if empty) to prevent "messages is not defined" error.
+ */
+// Flash Helper Middleware
 app.use((req, res, next) => {
-  res.locals.messages = req.flash();
+  // res.locals.flash is now an object with arrays for notice and error
+  res.locals.flash = {
+    notice: req.flash("notice"),
+    error: req.flash("error"),
+  };
   next();
 });
-*/
+
 
 // Body parser middleware
 app.use(bodyParser.json());
@@ -69,6 +76,23 @@ app.use(expressLayouts);
  * Universal JWT Check Middleware
  ************************/
 app.use(utilities.checkJWT); // applied to all requests
+
+/* ***********************
+ * New Middleware: Set Logged In Status for EJS Views (Task 1 Fix)
+ ************************/
+app.use((req, res, next) => {
+  // Check if session data (set by login or checkJWT) exists
+  if (req.session.accountData) {
+    // Set locals variables for EJS to use
+    res.locals.loggedin = 1; // EJS checks for locals.loggedin
+    res.locals.accountData = req.session.accountData; // EJS uses locals.accountData
+  } else {
+    // Ensure they are always defined, even if the user is logged out
+    res.locals.loggedin = 0;
+    res.locals.accountData = null;
+  }
+  next();
+});
 
 /* ***********************
  * View Engine and Templates

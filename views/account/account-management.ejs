@@ -7,64 +7,56 @@
         <% } %>
 
             <!-- Display errors -->
-            <% if (errors) { %>
+            <% if (errors && errors.length> 0) { %>
                 <ul class="notice-list">
                     <% errors.forEach(error=> { %>
                         <li class="notice">
-                            <%= error.msg %>
+                            <%= error.msg ? error.msg : error %>
                         </li>
                         <% }) %>
                 </ul>
                 <% } %>
 
                     <!-- Display flash messages (notice) -->
-                    <%# CRITICAL FIX: The message container only renders if the array is not empty %>
-                        <% if (notice && Array.isArray(notice) && notice.length> 0) { %>
-                            <div class="flash-message notice bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4"
-                                role="alert">
-                                <% notice.forEach(message=> { %>
-                                    <p>
-                                        <%= message %>
-                                    </p>
-                                    <% }) %>
-                            </div>
-                            <% } %>
+                    <% if (notice) { %>
+                        <div class="flash-message notice bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-md"
+                            role="alert">
+                            <p>
+                                <%= notice %>
+                            </p>
+                        </div>
+                        <% } %>
 
-                                <!-- If logged in -->
-                                <% if (locals.loggedin) { %>
-                                    <% const accountData=locals.accountData || {}; %>
-                                        <% const accountId=accountData.account_id || '' ; %>
-                                            <% const accountType=accountData.account_type || '' ; %>
+                            <!-- If logged in -->
+                            <% if (locals.loggedin) { %>
+                                <% const accountData=locals.accountData || {}; %>
+                                    <% const accountId=accountData.account_id || '' ; %>
+                                        <% const accountType=accountData.account_type || '' ; %>
 
-                                                <!-- Requirement 1: Conditional Greeting (Always rendered) -->
-                                                <h2>Welcome <%= accountData.account_firstname || 'User' %>
-                                                </h2>
+                                            <!-- Conditional Greeting -->
+                                            <h2>Welcome <%= accountData.account_firstname || 'User' %>
+                                            </h2>
 
-                                                <!-- Requirement 4 & 5: Update Account Link (Always present, above Inventory) -->
+                                            <!-- Update Account Link -->
+                                            <p>
+                                                <a href="/account/update-account-info"
+                                                    title="Click to update account information">
+                                                    Update Account Information
+                                                </a>
+                                            </p>
+
+                                            <!-- Inventory Management for Employee/Admin Only -->
+                                            <% if (accountType==='Employee' || accountType==='Admin' ) { %>
+                                                <hr>
+                                                <h3>Inventory Management</h3>
                                                 <p>
-                                                    <%# FIX: Removed the dynamic accountId from the link to match the
-                                                        updated route: /account/update %>
-                                                        <a href="/account/update"
-                                                            title="Click to update account information">
-                                                            Update Account Information
-                                                        </a>
+                                                    <a href="/inv" title="Access Inventory Management">Access the
+                                                        Inventory Management View</a>
                                                 </p>
+                                                <% } %>
 
-                                                <!-- Requirement 2 & 3: Inventory Management for Employee/Admin Only -->
-                                                <% if (accountType==='Employee' || accountType==='Admin' ) { %>
-                                                    <hr>
-                                                    <!-- Requirement: <h3> heading for Inventory Management -->
-                                                    <h3>Inventory Management</h3>
-
-                                                    <!-- Requirement: <p> element containing the link -->
-                                                    <p>
-                                                        <a href="/inv" title="Access Inventory Management">Access the
-                                                            Inventory Management View</a>
-                                                    </p>
-                                                    <% } %>
-
-                                                        <% } else { %>
-                                                            <h2>Welcome!</h2>
-                                                            <p>You must be logged in to view your account management
-                                                                area.</p>
-                                                            <% } %>
+                                                    <% } else { %>
+                                                        <h2>Welcome!</h2>
+                                                        <p>You must be logged in to view your account management area.
+                                                        </p>
+                                                        <% } %>

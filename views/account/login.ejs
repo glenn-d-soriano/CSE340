@@ -147,16 +147,14 @@
                     <%= title %>
                 </h1>
 
-                <!-- *** FIX START *** -->
-                <!-- The old 'messages' object is now undefined, causing the error. -->
-                <!-- We replace it by checking for the 'notice' variable passed by the controller. -->
-                <% if (notice && notice.length> 0) { %>
+                <!-- SUCCESS FLASH MESSAGE -->
+                <% if (notice) { %>
                     <p class="flash notice-success">
-                        <%= notice[0] %>
+                        <%= notice %>
                     </p>
                     <% } %>
-                        <!-- *** FIX END *** -->
 
+                        <!-- ERROR MESSAGES -->
                         <% if (errors) { %>
                             <ul class="flash notice">
                                 <% let errorList=Array.isArray(errors) ? errors : [errors]; %>
@@ -179,8 +177,7 @@
                                     <button type="submit">Login</button>
                                 </form>
 
-                                <p>Don't have an account? <a href="/account/register">Register here</a>
-                                </p>
+                                <p>Don't have an account? <a href="/account/register">Register here</a></p>
             </div>
         </main>
     </body>
