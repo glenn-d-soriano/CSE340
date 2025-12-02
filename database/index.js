@@ -21,7 +21,7 @@ if (process.env.NODE_ENV !== "production") {
   };
 }
 
-pool.connect()
+/**pool.connect()
   .then(client => {
     console.log("Database connected successfully!");
     client.release();
@@ -30,5 +30,6 @@ pool.connect()
     console.error("Unable to connect to the database:", err.message);
     process.exit(1);
   });
+*/
   
 module.exports = pool;

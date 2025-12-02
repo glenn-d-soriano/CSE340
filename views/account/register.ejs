@@ -176,8 +176,8 @@
                     <%= title %>
                 </h1>
 
-                <%# Flash Messages %>
-                    <% if (messages && Object.keys(messages).length> 0) { %>
+                <%# Flash Messages (FIXED: Added check for typeof messages !=='undefined' ) %>
+                    <% if (typeof messages !=='undefined' && messages && Object.keys(messages).length> 0) { %>
                         <% Object.keys(messages).forEach(type=> { %>
                             <% messages[type].forEach(message=> { %>
                                 <div class="flash-message <%= type %>">
