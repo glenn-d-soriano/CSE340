@@ -25,10 +25,23 @@ const flash = require("connect-flash");
 
 
 /* ***********************
+ * View Engine, Layouts, and Static Files (TOP PRIORITY)
+ ***********************
+ * These MUST be configured and applied before any route handlers or 
+ * middleware that might call res.render().
+ */
+app.set("view engine", "ejs");
+app.set("views", __dirname + "/views");
+app.set("layout", "./layouts/layout"); // Set default layout
+app.use(express.static("public"));
+app.use(expressLayouts); // Apply layout middleware immediately after config
+
+
+/* ***********************
  * Middleware
  ************************/
 
-// Session Middleware (must be first)
+// Session Middleware (must be first of the dynamic middleware)
 app.use(
   session({
     store: new (require("connect-pg-simple")(session))({
@@ -49,11 +62,8 @@ app.use(cookieParser());
 app.use(flash());
 
 /* ***********************
- * Global Locals Middleware (Re-inserted)
- ***********************
- * This middleware ensures the "messages" variable is always defined 
- * in all EJS views (even if empty) to prevent "messages is not defined" error.
- */
+ * Global Locals Middleware 
+ ************************/
 // Flash Helper Middleware
 app.use((req, res, next) => {
   // res.locals.flash is now an object with arrays for notice and error
@@ -69,9 +79,6 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Static files and layouts middleware
-app.use(express.static("public"));
-app.use(expressLayouts);
 
 /* ***********************
  * Universal JWT Check Middleware
@@ -95,12 +102,7 @@ app.use((req, res, next) => {
   next();
 });
 
-/* ***********************
- * View Engine and Templates
- ************************/
-app.set("view engine", "ejs");
-app.set("views", __dirname + "/views");
-app.set("layout", "./layouts/layout");
+
 
 /* ***********************
  * Locals & General Variables
@@ -108,8 +110,6 @@ app.set("layout", "./layouts/layout");
 // Global navigation variable
 app.use(async (req, res, next) => {
   res.locals.nav = await utilities.getNav();
-  // Optional: You can set the notice/error locals here if you prefer to 
-  // do it globally, but for now, we rely on the controller passing them.
   next();
 });
 
@@ -133,6 +133,8 @@ app.use(async (req, res, next) => {
  * Express Error Handler
  ************************/
 app.use(async (err, req, res, next) => {
+  // IMPORTANT: Since expressLayouts is now applied globally and early,
+  // this error handler should now correctly render with the layout.
   let nav = await utilities.getNav();
 
   console.error(`Error at "${req.originalUrl}": ${err.message}`);

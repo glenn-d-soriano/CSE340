@@ -1,11 +1,75 @@
-<!-- views/inventory/detail.ejs -->
+<!-- Flash messages and errors -->
+<% if (errors && errors.length> 0) { %>
+    <ul class="notice">
+        <% errors.forEach(error=> { %>
+            <li>
+                <%= error.msg %>
+            </li>
+            <% }) %>
+    </ul>
+    <% } %>
 
-<h1 class="page-title">
-    <%= title %>
-</h1>
+        <h1>
+            <%= title %>
+        </h1>
 
-<div class="vehicle-detail-container">
-    <!-- Vehicle detail content from utilities.buildInventoryDetail -->
-    <%- detailHTML %>
-</div>
+        <!-- Vehicle Details Section -->
+        <div class="detail-container">
+            <%- detailHTML %>
+        </div>
 
+        <!-- Review System -->
+        <h2 class="text-2xl font-bold mt-10 mb-6 border-b pb-2">Customer Reviews</h2>
+
+        <section class="reviews-section max-w-2xl mx-auto p-4 bg-gray-50 rounded-xl shadow-inner">
+
+            <% if (locals.loggedin) { %>
+
+                <% const accountId=locals.accountData ? locals.accountData.account_id : '' ; const
+                    accountFirstname=locals.accountData ? locals.accountData.account_firstname : 'User' ; const
+                    accountLastInitial=locals.accountData ? locals.accountData.account_lastname.charAt(0) : '' ; %>
+
+                    <h3 class="text-xl font-semibold mb-4 text-center text-secondary">
+                        Post a Review as <%= accountFirstname %>
+                            <%= accountLastInitial %>.
+                    </h3>
+
+                    <!-- Review Submission Form -->
+                    <form id="reviewForm" action="/inv/add-review" method="POST" class="space-y-4">
+
+                        <input type="hidden" name="inv_id" value="<%= inv_id %>">
+                        <input type="hidden" name="account_id" value="<%= accountId %>">
+
+                        <div class="form-group">
+                            <label for="review_text" class="block text-sm font-medium text-gray-700">
+                                Your Review:
+                            </label>
+
+                            <textarea id="review_text" name="review_text" rows="5" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary p-2"><%= locals.review_text ? locals.review_text : '' %></textarea>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-opacity-90">
+                            Submit Review
+                        </button>
+
+                    </form>
+
+                    <% } else { %>
+
+                        <p class="text-center p-4 bg-yellow-100 rounded-lg text-yellow-800">
+                            <a href="/account/login" class="font-semibold text-primary hover:underline">Log in</a>
+                            to post a review.
+                        </p>
+
+                        <% } %>
+
+        </section>
+
+        <!-- Review List -->
+        <h3 class="text-xl font-bold mt-8">Existing Reviews</h3>
+
+        <div id="review-list">
+            <%- reviewsListHTML %>
+        </div>

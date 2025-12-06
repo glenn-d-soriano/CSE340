@@ -1,4 +1,8 @@
 const { body, validationResult } = require("express-validator");
+// We need to import the inventory model and utilities for the checkReviewData function
+// --- FIX 1: Corrected path for utilities assuming it is in the parent directory ---
+const utilities = require("../utilities"); 
+const invModel = require('../models/inventory-model');
 
 // ===========================
 // Classification Validation
@@ -113,10 +117,89 @@ function checkUpdateData(req, res, next) {
     next();
 }
 
+// ===========================
+// Review Submission Validation (NEW)
+// ===========================
+
+/* **************************************
+ * Review Rules for submitting a new review
+ * ************************************ */
+function reviewRules() {
+  return [
+    // review_text is required and must not be empty
+    body("review_text")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Review text cannot be empty."), // Error message for review text
+
+    // inv_id is required and must be an integer (It should be passed as hidden input)
+    body("inv_id")
+      .trim()
+      .isInt({ min: 1 })
+      .withMessage("Inventory ID is missing or invalid."), // Error message for inv_id
+
+    // account_id is required and must be an integer (It should be passed as hidden input)
+    body("account_id")
+      .trim()
+      .isInt({ min: 1 })
+      .withMessage("Account ID is missing or invalid."), // Error message for account_id
+  ];
+}
+
+/* **************************************
+ * Check data and return to detail view with errors
+ * ************************************ */
+async function checkReviewData(req, res, next) {
+  const { review_text, inv_id } = req.body;
+  let errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    // If errors exist, we must rebuild the detail page with the errors and sticky data
+
+    // 1. Get the classification list (for the layout/nav)
+    const nav = await utilities.getNav();
+
+    // 2. Get vehicle data and associated reviews
+    // --- FIX 2: Renaming 'data' to 'invData' for EJS template consistency ---
+    const invData = await invModel.getInventoryByInvId(inv_id); 
+    const reviews = await invModel.getReviewsByInvId(inv_id);
+
+    // 3. Build the required HTML parts
+    const detailHTML = await utilities.buildInvDetailHTML(invData);
+    const reviewsListHTML = await utilities.buildReviewsListHTML(reviews);
+    
+    // 4. Extract vehicle details for the page title/h1
+    const title = `${invData.inv_year} ${invData.inv_make} ${invData.inv_model}`;
+
+    // 5. Render the detail view, passing all required data, errors, and sticky text
+    res.render("inventory/detail", {
+      title: title,
+      nav,
+      detailHTML,
+      reviewsListHTML, // Pass the rebuilt list of reviews
+      errors: errors.array(), // Pass the array of validation errors
+      // Sticky data:
+      review_text,
+      // Variables needed for the form/page:
+      inv_id: parseInt(inv_id),
+      // --- FIX 2: Passing as invData for consistency if the view uses it ---
+      invData, 
+      // We also need to pass res.locals.loggedin and res.locals.accountData if the 
+      // view uses it for the form, but those should already be available 
+      // via app.use(res.locals) middleware setup.
+    });
+    return;
+  }
+  next();
+}
+
+
 module.exports = {
     classificationRules,
     checkClassificationData,
     inventoryRules,
     checkInventoryData,
-    checkUpdateData, // <-- Exported to fix the Express crash
+    checkUpdateData,
+    reviewRules, 
+    checkReviewData, 
 };

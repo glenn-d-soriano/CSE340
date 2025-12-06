@@ -247,6 +247,44 @@ Util.buildClassificationOptions = async function (classification_id = null) {
   }
 
 /* ****************************************
+ * ENHANCEMENT: Build the HTML list of vehicle reviews
+ * *************************************** */
+Util.buildReviewsList = function (reviewData) {
+    if (!reviewData || reviewData.length === 0) {
+        return '<p class="notice">Be the first to leave a review!</p>';
+    }
+
+    let html = '<section class="reviews-list-section">';
+    html += '<h3>Customer Reviews</h3>';
+    html += '<ul class="reviews-list">';
+
+    reviewData.forEach(review => {
+        // 1. Format the date (e.g., "November 15, 2023")
+        const date = new Date(review.review_date);
+        const formattedDate = new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }).format(date);
+
+        // 2. Format the reviewer's name (e.g., "Jane D.") for display
+        const reviewerName = `${review.account_firstname} ${review.account_lastname.charAt(0)}.`;
+
+        html += '<li>';
+        // Review header: Name reviewed on Date
+        html += `<div class="review-header"><strong>${reviewerName}</strong> reviewed on ${formattedDate}</div>`;
+        // Review content
+        html += `<p class="review-text">${review.review_text}</p>`;
+        html += '</li>';
+    });
+
+    html += '</ul>';
+    html += '</section>';
+
+    return html;
+};
+
+/* ****************************************
  * Middleware to handle errors
  * Wrap an async function in this middleware to catch errors
  * *************************************** */

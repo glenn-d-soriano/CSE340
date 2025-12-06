@@ -32,7 +32,6 @@ async function getInventoryByClassificationId(classification_id) {
 
 /* ***************************
  * Get inventory item by inv_id
- * FIX APPLIED HERE
  * ************************** */
 async function getInventoryById(inv_id) {
     // 1. Convert to a safe integer value.
@@ -79,7 +78,7 @@ async function addClassification(classification_name) {
 }
 
 /* ***************************
- * Add new inventory item (TASK 3) - Adjusted to accept parameters
+ * Add new inventory item (TASK 3)
  * ************************** */
 async function addInventory(
     inv_make, inv_model, inv_year, inv_description, inv_image, 
@@ -204,6 +203,48 @@ async function deleteInventoryItem(inv_id) {
     }
 }
 
+/* ***************************
+ * ENHANCEMENT: Add new review to database
+ * ************************** */
+async function addReview(review_text, inv_id, account_id) {
+    try {
+        // This query inserts the review, vehicle ID, and account ID into the review table.
+        const sql = "INSERT INTO review (review_text, inv_id, account_id) VALUES ($1, $2, $3) RETURNING *";
+        const result = await pool.query(sql, [
+            review_text, 
+            parseInt(inv_id), 
+            parseInt(account_id)
+        ]);
+        return result.rowCount > 0;
+    } catch (error) {
+        console.error("addReview error: " + error);
+        throw new Error("Database query failed while adding review.");
+    }
+}
+
+/* ***************************
+ * ENHANCEMENT: Get reviews for a specific vehicle (inv_id)
+ * ************************** */
+async function getReviewsByInvId(inv_id) {
+    try {
+        // This query joins the review and account tables to fetch the review content and the reviewer's name.
+        const data = await pool.query(
+            `SELECT 
+                r.review_id, r.review_text, r.review_date, r.inv_id, r.account_id,
+                a.account_firstname, a.account_lastname
+             FROM review AS r
+             JOIN account AS a ON r.account_id = a.account_id
+             WHERE r.inv_id = $1
+             ORDER BY r.review_date DESC`,
+            [parseInt(inv_id)]
+        );
+        return data.rows; // Returns an array of review objects
+    } catch (error) {
+        console.error("getReviewsByInvId error: " + error);
+        throw new Error("Database query failed while fetching vehicle reviews.");
+    }
+}
+
 
 module.exports = { 
     getClassifications, 
@@ -214,5 +255,8 @@ module.exports = {
     updateInventory, 
     getClassificationById, 
     deleteClassification,
-    deleteInventoryItem 
+    deleteInventoryItem,
+    // ENHANCEMENT exports
+    addReview,
+    getReviewsByInvId
 };

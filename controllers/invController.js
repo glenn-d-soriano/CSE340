@@ -1,4 +1,5 @@
-const invModelDb = require("../models/inventory-model"); // Keeping this one
+const invModelDb = require("../models/inventory-model"); 
+const reviewModelDb = require("../models/review-model"); 
 const utilities = require("../utilities/");
 const { validationResult } = require("express-validator");
 // Removed the duplicate 'const invModelDb = require("../models/inventory-model");'
@@ -64,32 +65,99 @@ invController.buildByClassificationId = async function (req, res, next) {
 };
 
 /* ***************************
- * Build single inventory item detail view
+ * Build single inventory item detail view (UPDATED FOR REVIEWS)
  * ************************** */
-invController.buildByInvId = async function (req, res, next) {
-  // Uses invId, which matches the route /detail/:invId
+invController.buildByInvId = utilities.handleErrors(async function (req, res, next) {
   const inv_id = req.params.invId;
-  // NOTE: getInventoryById usually returns an array of one item, we'll rely on the model for the single object.
-  const data = await invModelDb.getInventoryById(inv_id);
+  const vehicleData = await invModelDb.getInventoryById(inv_id);
   
-  // ADDED CHECK: If no vehicle found, redirect to prevent crashing
-  if (!data) {
+  if (!vehicleData) {
     req.flash("notice", "Sorry, that vehicle was not found.");
     return res.redirect("/"); 
   }
   
-  const detail = await utilities.buildInventoryDetail(data);
+  // 1. Build Vehicle Detail HTML
+  const detailHTML = await utilities.buildInventoryDetail(vehicleData);
   let nav = await utilities.getNav();
-  const vehicleName = `${data.inv_make} ${data.inv_model}`;
+  const vehicleName = `${vehicleData.inv_make} ${vehicleData.inv_model}`;
   
+  // 2. Fetch Reviews
+  const reviewData = await reviewModelDb.getReviewsByInventoryId(inv_id);
+  
+  // 3. Build Reviews List HTML
+  const reviewsListHTML = utilities.buildReviewsList(reviewData);
+
+  // 4. Extract User Data for Review Form (used for sticky data/display name)
+  const accountId = res.locals.loggedin ? res.locals.accountData.account_id : null;
+  const accountFirstName = res.locals.loggedin ? res.locals.accountData.account_firstname : '';
+  const accountLastName = res.locals.loggedin ? res.locals.accountData.account_lastname : '';
+  
+  // 5. Pass data to view
   res.render("inventory/detail", {
     title: vehicleName,
     nav,
-    // FIX: Renamed 'detail' to 'detailHTML' to match what the EJS template is expecting.
-    detailHTML: detail,
+    detailHTML, 
     messages: req.flash(),
+    // NEW REVIEW FIELDS:
+    reviewsListHTML,
+    inv_id: vehicleData.inv_id, // Pass inv_id for the hidden form field
+    accountId, // Pass accountId for the hidden form field
+    accountFirstName,
+    accountLastName,
+    errors: null, // Initial load has no form errors
+    review_text: null, // Initial load has no sticky review text
   });
-};
+});
+
+/* ***************************
+ * Process Add Review (NEW FUNCTION)
+ * ************************** */
+invController.addReview = utilities.handleErrors(async function (req, res) {
+    const errors = validationResult(req);
+    const { review_text, inv_id, account_id } = req.body;
+    let nav = await utilities.getNav();
+
+    // The vehicle data is needed for re-rendering the detail page on error or success
+    const vehicleData = await invModelDb.getInventoryById(inv_id);
+    const detailHTML = await utilities.buildInventoryDetail(vehicleData);
+    const vehicleName = `${vehicleData.inv_make} ${vehicleData.inv_model}`;
+
+    // If validation fails, re-render the detail page with errors and sticky data
+    if (!errors.isEmpty()) {
+        
+        // Re-fetch reviews to display existing ones
+        const reviewData = await invModelDb.getReviewsByInvId(inv_id);
+        const reviewsListHTML = utilities.buildReviewsList(reviewData);
+
+        return res.render("inventory/detail", {
+            title: vehicleName,
+            nav,
+            detailHTML,
+            reviewsListHTML,
+            inv_id: parseInt(inv_id),
+            accountId: parseInt(account_id),
+            accountFirstName: res.locals.accountData.account_firstname,
+            accountLastName: res.locals.accountData.account_lastname,
+            errors: errors.array(), // Pass validation errors
+            review_text, // Pass back the invalid input for persistence
+            messages: req.flash(), 
+        });
+    }
+
+    // If validation passes, insert data
+    const reviewResult = await reviewModelDb.submitReview(review_text, inv_id, account_id);
+
+    if (reviewResult) {
+        req.flash("notice", "Thank you for your review! It has been added.");
+    } else {
+        req.flash("error", "Sorry, the review submission failed.");
+    }
+
+    // Redirect back to the same vehicle detail page (PRG pattern)
+    // The redirect triggers buildByInvId, which refetches all data including the new review
+    return res.redirect(`/inv/detail/${inv_id}`);
+});
+
 
 /* ***************************
  * Build Inventory Management View (TASK 1)
@@ -188,6 +256,9 @@ invController.buildAddInventory = async function (req, res) {
 /* ***************************
  * Process Add New Inventory (TASK 3 - POST)
  * ************************** */
+/* ***************************
+ * Process Add New Inventory (TASK 3 - POST)
+ * ************************** */
 invController.addInventory = async function (req, res) {
     let nav = await utilities.getNav();
     const { 
@@ -197,6 +268,7 @@ invController.addInventory = async function (req, res) {
     } = req.body;
     
     // Ensure inv_description has a value for database insertion, even if not on the form
+    // NOTE: We need the description variable here, even if the field isn't in the EJS view
     const final_description = inv_description || `A quality vehicle: ${inv_make} ${inv_model}.`;
 
     const errors = validationResult(req);
@@ -218,11 +290,22 @@ invController.addInventory = async function (req, res) {
     }
 
     // If validation passes, insert data
-    // NOTE: inv_description is passed as the 3rd argument in the model
+    //
+    // --- START FIX ---
+    // The arguments here MUST match the exact order in inventory-model.js (Make, Model, Year, Description, ...)
     const result = await invModelDb.addInventory(
-        inv_make, inv_model, final_description, inv_image, inv_thumbnail, 
-        inv_price, inv_year, inv_miles, inv_color, classification_id
+        inv_make, 
+        inv_model, 
+        inv_year,             // Arg 3: inv_year (Model expects year)
+        final_description,    // Arg 4: final_description (Model expects description)
+        inv_image, 
+        inv_thumbnail, 
+        inv_price, 
+        inv_miles, 
+        inv_color, 
+        classification_id
     );
+    // --- END FIX ---
 
     if (result) {
         req.flash("notice", `New vehicle added successfully.`);
@@ -246,6 +329,9 @@ invController.addInventory = async function (req, res) {
     }
 };
 
+/* ***************************
+ * Build Delete Classification View (NEW CODE - GET)
+// [Immersive content redacted for brevity.]
 /* ***************************
  * Route to trigger intentional error
  * ************************** */

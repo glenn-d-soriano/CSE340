@@ -4,6 +4,7 @@ const router = new express.Router();
 const invController = require("../controllers/invController");
 const utilities = require("../utilities/");
 const invValidation = require("../utilities/inventory-validation");
+const reviewValidation = require("../utilities/review-validation"); // NEW: Import review validation
 // 1. IMPORT THE AUTHORIZATION MIDDLEWARE
 const { checkEmployeeOrAdmin } = require("../middleware/check-authorization");
 
@@ -150,6 +151,17 @@ router.get(
 router.get(
   "/detail/:invId",
   utilities.handleErrors(invController.buildByInvId)
+);
+
+// ---------------------------
+// POST REVIEW (PUBLIC)
+// ---------------------------
+// The action from the detail page's review form should hit this route.
+router.post(
+  "/add-review",
+  reviewValidation.reviewRules(),
+  reviewValidation.checkReviewData,
+  utilities.handleErrors(invController.addReview)
 );
 
 // ---------------------------
